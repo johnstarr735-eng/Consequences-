@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local Worker development. This is not a live connection.
+# Replace the model placeholder with an exact name returned by ollama list.
+# Disable cloud features in the separate Ollama service with OLLAMA_NO_CLOUD=1.
+AI_PROVIDER=ollama
+OLLAMA_MODEL=REPLACE_WITH_INSTALLED_MODEL
+OLLAMA_BASE_URL=http://127.0.0.1:11434

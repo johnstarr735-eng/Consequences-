@@ -1,0 +1,389 @@
+{
+  "baseline": {
+    "engine": "1.13",
+    "sourceArchiveSHA256": "cfb79cd9c1d9a72ddb2ea967dffb12b33f67d042a6c7357d547f7514cadf549d",
+    "files": 23,
+    "allHashesMatch": true
+  },
+  "solvedCases": [
+    {
+      "seed": 1,
+      "winners": [
+        "A"
+      ],
+      "minutes": 56.636963,
+      "frames": 53,
+      "moments": 12,
+      "will": {
+        "active": 0,
+        "meanCommitment": 0,
+        "opens": 0,
+        "overrides": 0,
+        "fulfilled": 0,
+        "closes": 0,
+        "syntheticActive": 0,
+        "storedWillStats": 0
+      },
+      "imagination": {
+        "active": 0,
+        "templates": 0,
+        "opens": 0,
+        "actualised": 0,
+        "closes": 0,
+        "meanSupport": 0,
+        "representedAsForms": 0
+      },
+      "praxis": {
+        "active": 0,
+        "practicalTraces": 0,
+        "peopleWithPracticalTrace": 0,
+        "opens": 0,
+        "impasses": 0,
+        "revisions": 0,
+        "revisionCompletes": 0,
+        "actualised": 0,
+        "closes": 0,
+        "memories": 0,
+        "successfulMemories": 0,
+        "meanRevisions": 0,
+        "storedPraxisStats": 0
+      },
+      "relationPhysicalMax": 0,
+      "relationMentalMax": 0.025184988671291153,
+      "relationTraceEpisodes": 7,
+      "signals": 0,
+      "materialActs": 4
+    },
+    {
+      "seed": 2,
+      "winners": [
+        "A"
+      ],
+      "minutes": 56.636963,
+      "frames": 53,
+      "moments": 12,
+      "will": {
+        "active": 0,
+        "meanCommitment": 0,
+        "opens": 0,
+        "overrides": 0,
+        "fulfilled": 0,
+        "closes": 0,
+        "syntheticActive": 0,
+        "storedWillStats": 0
+      },
+      "imagination": {
+        "active": 0,
+        "templates": 0,
+        "opens": 0,
+        "actualised": 0,
+        "closes": 0,
+        "meanSupport": 0,
+        "representedAsForms": 0
+      },
+      "praxis": {
+        "active": 0,
+        "practicalTraces": 0,
+        "peopleWithPracticalTrace": 0,
+        "opens": 0,
+        "impasses": 0,
+        "revisions": 0,
+        "revisionCompletes": 0,
+        "actualised": 0,
+        "closes": 0,
+        "memories": 0,
+        "successfulMemories": 0,
+        "meanRevisions": 0,
+        "storedPraxisStats": 0
+      },
+      "relationPhysicalMax": 0,
+      "relationMentalMax": 0.025184988671291153,
+      "relationTraceEpisodes": 7,
+      "signals": 0,
+      "materialActs": 4
+    },
+    {
+      "seed": 3,
+      "winners": [
+        "A"
+      ],
+      "minutes": 56.636963,
+      "frames": 53,
+      "moments": 12,
+      "will": {
+        "active": 0,
+        "meanCommitment": 0,
+        "opens": 0,
+        "overrides": 0,
+        "fulfilled": 0,
+        "closes": 0,
+        "syntheticActive": 0,
+        "storedWillStats": 0
+      },
+      "imagination": {
+        "active": 0,
+        "templates": 0,
+        "opens": 0,
+        "actualised": 0,
+        "closes": 0,
+        "meanSupport": 0,
+        "representedAsForms": 0
+      },
+      "praxis": {
+        "active": 0,
+        "practicalTraces": 0,
+        "peopleWithPracticalTrace": 0,
+        "opens": 0,
+        "impasses": 0,
+        "revisions": 0,
+        "revisionCompletes": 0,
+        "actualised": 0,
+        "closes": 0,
+        "memories": 0,
+        "successfulMemories": 0,
+        "meanRevisions": 0,
+        "storedPraxisStats": 0
+      },
+      "relationPhysicalMax": 0,
+      "relationMentalMax": 0.025184988671291153,
+      "relationTraceEpisodes": 7,
+      "signals": 0,
+      "materialActs": 4
+    }
+  ],
+  "waitingMatch": {
+    "minutes": 180,
+    "frames": 6,
+    "moments": 0,
+    "will": {
+      "active": 0,
+      "meanCommitment": 0,
+      "opens": 0,
+      "overrides": 0,
+      "fulfilled": 0,
+      "closes": 0,
+      "syntheticActive": 0,
+      "storedWillStats": 0
+    },
+    "imagination": {
+      "active": 0,
+      "templates": 0,
+      "opens": 0,
+      "actualised": 0,
+      "closes": 0,
+      "meanSupport": 0,
+      "representedAsForms": 0
+    },
+    "praxis": {
+      "active": 0,
+      "practicalTraces": 0,
+      "peopleWithPracticalTrace": 0,
+      "opens": 0,
+      "impasses": 0,
+      "revisions": 0,
+      "revisionCompletes": 0,
+      "actualised": 0,
+      "closes": 0,
+      "memories": 0,
+      "successfulMemories": 0,
+      "meanRevisions": 0,
+      "storedPraxisStats": 0
+    },
+    "relationPhysicalMax": 0,
+    "relationMentalMax": 0,
+    "relationTraceEpisodes": 0,
+    "signals": 0,
+    "materialActs": 0
+  },
+  "horizons": [
+    {
+      "condition": "healthy",
+      "from": {
+        "x": 2,
+        "y": 3
+      },
+      "to": {
+        "x": 2,
+        "y": 3.2619
+      },
+      "raw": 17,
+      "live": 17,
+      "maxTightening": 0,
+      "margin": 0.6035683568430374,
+      "domains": [
+        "cosmic",
+        "social",
+        "existential"
+      ],
+      "fieldPressure": 0.07482717171928437,
+      "scoreWithFieldsOnSurvivingPool": -0.00602538757565603,
+      "scoreWithoutFieldsOnSurvivingPool": 0,
+      "survivingPoolLiveWith": 17,
+      "survivingPoolLiveWithout": 17
+    },
+    {
+      "condition": "depleted",
+      "from": {
+        "x": 2,
+        "y": 3
+      },
+      "to": {
+        "x": 2,
+        "y": 3.0976725
+      },
+      "raw": 17,
+      "live": 17,
+      "maxTightening": 0.4002590094927673,
+      "margin": -0.01642717138019515,
+      "domains": [
+        "cosmic",
+        "social",
+        "existential"
+      ],
+      "fieldPressure": 0.07497806398008429,
+      "scoreWithFieldsOnSurvivingPool": -0.08608147365552515,
+      "scoreWithoutFieldsOnSurvivingPool": -0.07691492825243007,
+      "survivingPoolLiveWith": 17,
+      "survivingPoolLiveWithout": 17
+    },
+    {
+      "condition": "severely_depleted",
+      "from": {
+        "x": 2,
+        "y": 3
+      },
+      "to": {
+        "x": 2,
+        "y": 3
+      },
+      "raw": 17,
+      "live": 1,
+      "maxTightening": 0.5425940999494533,
+      "margin": -0.10502523999146343,
+      "domains": [
+        "cosmic",
+        "social",
+        "existential"
+      ],
+      "fieldPressure": 0.07223863537421431,
+      "scoreWithFieldsOnSurvivingPool": -0.03466084448296603,
+      "scoreWithoutFieldsOnSurvivingPool": -0.027025878818448635,
+      "survivingPoolLiveWith": 1,
+      "survivingPoolLiveWithout": 1
+    }
+  ],
+  "promise": {
+    "breaches": [
+      "A"
+    ],
+    "commitmentStatus": "broken",
+    "canonicalWorldUnchanged": true,
+    "signals": 4,
+    "canonicalEvents": 0
+  },
+  "attack": {
+    "minutes": 2,
+    "frames": 2,
+    "moments": 3,
+    "will": {
+      "active": 0,
+      "meanCommitment": 0,
+      "opens": 0,
+      "overrides": 0,
+      "fulfilled": 0,
+      "closes": 0,
+      "syntheticActive": 0,
+      "storedWillStats": 0
+    },
+    "imagination": {
+      "active": 0,
+      "templates": 0,
+      "opens": 0,
+      "actualised": 0,
+      "closes": 0,
+      "meanSupport": 0,
+      "representedAsForms": 0
+    },
+    "praxis": {
+      "active": 0,
+      "practicalTraces": 0,
+      "peopleWithPracticalTrace": 0,
+      "opens": 0,
+      "impasses": 0,
+      "revisions": 0,
+      "revisionCompletes": 0,
+      "actualised": 0,
+      "closes": 0,
+      "memories": 0,
+      "successfulMemories": 0,
+      "meanRevisions": 0,
+      "storedPraxisStats": 0
+    },
+    "relationPhysicalMax": 0.3429425337120726,
+    "relationMentalMax": 0,
+    "relationTraceEpisodes": 4,
+    "signals": 0,
+    "materialActs": 0,
+    "victimReserve": 0,
+    "victimInjury": 0.10741116555768809,
+    "incidentCount": 2,
+    "incidents": [
+      {
+        "root": "encounter:4",
+        "process": "compress"
+      },
+      {
+        "root": "encounter:6",
+        "process": "collapse"
+      }
+    ],
+    "canonicalEventTypes": [
+      "bodily_contact",
+      "reciprocal_encounter_open",
+      "reciprocal_encounter_close"
+    ],
+    "directionalConsequence": {
+      "A": {
+        "positive": 0,
+        "negative": 0,
+        "net": 0
+      },
+      "N": {
+        "positive": 0,
+        "negative": 0,
+        "net": 0
+      }
+    },
+    "relationSources": [
+      "bodily_contact",
+      "reciprocal_encounter_open",
+      "perception_close",
+      "reciprocal_encounter_close"
+    ],
+    "privateBIncidentRecords": 0
+  },
+  "pending": {
+    "canonicalWorldUnchanged": true,
+    "incidents": 0,
+    "otherPlayerSeesPrompt": false
+  },
+  "fieldBoundary": {
+    "energy": 0.001,
+    "water": 0.001,
+    "integrity": 0.02,
+    "mobility": 0.13,
+    "raw": 17,
+    "withFieldDemand": 1,
+    "withoutFieldDemand": 17,
+    "maxTighteningWith": 0.5290464007909043,
+    "maxTighteningWithout": 0.5139062312560492
+  },
+  "incapacity": {
+    "status": "unconscious",
+    "liveSurroundings": 0,
+    "oldPositionRetained": true,
+    "accessClosed": true,
+    "accessReopened": true,
+    "newPositionAcquired": true
+  }
+}

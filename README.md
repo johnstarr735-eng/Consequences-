@@ -1,8 +1,18 @@
-# Consequences — 0.8.0
+# Consequences — 0.8.1
 
 The notebooks are the primary philosophical source; DESTINY is their source-reviewed executable interpretation; Consequences makes the resulting world playable. Read [the foundation](docs/FOUNDATION.md), [working instructions](AGENTS.md) and [current timed-world implementation](docs/TIMED_WORLDS.md).
 
 New matches use **several prompts within a fifteen-minute virtual turn**. Consequences resolve immediately, so a conversation can continue without passing control after every question. Each player chooses a situated character, confirms the shared environment, and pursues one clear starting goal.
+
+## Current review
+
+[The 0.8.1 gameplay review](docs/GAMEPLAY_REVIEW_0_8_1.md) records the assessment, repaired naming/recap/response bugs and clean-install correction. The intended world choices are historical, fantasy and present generation modes. The prepared profiles below remain a bounded demonstration; the full world generator and live AI connection are unfinished.
+
+## GitHub source and selectable AI
+
+The complete game is unpacked into the repository's working source directories. The earlier 0.8.0 ZIP is a retained backup. Make changes in `app/`, `lib/`, `engine/` and the other source directories; the canonical foundation and reviews are in `docs/`.
+
+The prepared integration supports backend configuration `AI_PROVIDER=ollama`, `openai` or `disabled` through the existing interpreter and compiler. Ollama uses an explicitly configured installed model and loopback address on the backend machine. Interpretation, existing scenario recipes and optional NPC wording share the selected provider; selecting Ollama never falls back to paid OpenAI calls. [AI_PROVIDER_SETUP.md](docs/AI_PROVIDER_SETUP.md) explains configuration, tests and the still-unconfigured public multiplayer connection. This is source integration; live AI quality and the user's Windows installation have not been tested.
 
 ## New matches
 
@@ -18,15 +28,15 @@ To win, lodge the correct killer at the case desk with three independent acquire
 
 ## Generation and AI
 
-The scenario compiler prepares a validated starting configuration and coherent prior evidence for the selected environment. Without a provider connection it uses local variation. The optional existing AI connection can select a supported recipe, interpret free wording into attempted processes, and supply bounded NPC dialogue. Invalid recipes/outages fall back to a valid same-environment scenario. The private recipe and culprit are never returned before case closure.
+The scenario compiler prepares a validated starting configuration and coherent prior evidence for the selected environment. Without a provider connection it uses local variation. The selected optional AI connection can choose a supported recipe, interpret free wording into attempted processes, and supply bounded NPC dialogue. Invalid recipes/outages fall back to a valid same-environment scenario. The private recipe and culprit are never returned before case closure.
 
-The AI connection is **not configured**. Local supported processes and scenario generation work without it. The generator currently varies this investigation; it does not generate arbitrary cities, new physics, elections or protection-game mechanics. Provider dialogue is an attributed claim and cannot manufacture physical evidence or an achieved action. Live provider quality, cost and latency remain unverified.
+Checking out the source does **not activate an AI connection**. Local supported processes and scenario generation work without it. The generator currently varies this investigation; it does not generate arbitrary cities, new physics, elections or protection-game mechanics. Provider dialogue is an attributed claim and cannot manufacture physical evidence or an achieved action. Live provider quality and latency remain unverified.
 
 ## Saved games and platforms
 
 Existing paired-contribution saves retain their original protocol. The earlier last-entry scenario also remains supported. World compression, immutable large snapshots, seat-scoped views, revision compare-and-swap, durable retry IDs, account-linked recovery and private notes remain active.
 
-The Site remains owner-private. A seat invitation does not itself grant app access. The iOS/Android source projects bundle the same interface and device-only practice; native multiplayer opens the private browser game. Version 0.8.0, native build 10. No signed APK/IPA or physical-device playthrough is claimed. See [mobile release status](docs/MOBILE_RELEASE.md).
+The Site remains owner-private. A seat invitation does not itself grant app access. The iOS/Android source projects bundle the same interface and device-only practice; native multiplayer opens the private browser game. Version 0.8.1, native build 11. No signed APK/IPA or physical-device playthrough is claimed. See [mobile release status](docs/MOBILE_RELEASE.md).
 
 ## Foundation and checks
 

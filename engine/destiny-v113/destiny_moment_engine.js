@@ -1,0 +1,996 @@
+// DESTINY v1.03 — FIELD / BASIN RE-FOUNDATION
+//
+// Canonical order: prior Reality -> active Field syntax -> finite representable superposition ->
+// Will/Process -> resolution/Collapse. A Field is grammar/pressure-syntax, not Force or an actor.
+// Consciousness/Mental/Physical are contextual interpenetrating registers, not compartments owned
+// by each Form. Ground/Order/Process remains the recursive holographic reading within a local basin.
+//
+// Chronology, numerical frame and Moment remain distinct. Every genuine Moment is a Field-conditioned
+// resolution; an explicit `field_activation` record only marks a material change/tightening of syntax,
+// and may open a Moment before any downstream event has been logged.
+//
+// Legacy intrinsic holograms/27-cell projections remain diagnostic compatibility data only.
+
+import {
+  clamp, Form, Person, Whole, RelationForm,
+  assimilationPotential, materialProfile,
+  activateEncounterAttributes, recordOthernessMoment,
+  updateRelationForm, stepWholes, intrinsicHologram, namedHologram, contextualProjection
+} from './destiny_unified_kernel.js';
+import {
+  distance, formRadius, reachRadius, maxTravel, rasterCell, clampPosition,
+  displacement, unit, add, lerp, dot, vectorLength, sweptContact
+} from './destiny_embodied_geometry.js';
+import {
+  ensureMaterialDynamics, resolveMaterialDynamics, commitMaterialDynamics, cleanupMaterialDynamics, materialDynamicsAudit, finiteMaterialForm
+} from './destiny_material_dynamics.js';
+import {
+  ensureMaterialTopology, initializeFiniteMaterialPositions, commitMaterialTopology, snapshotMaterialTopology, materialTopologyAudit
+} from './destiny_material_topology.js';
+import {
+  ensureStructuralMechanics, commitStructuralMechanics, snapshotStructuralMechanics, structuralMechanicsAudit
+} from './destiny_structural_mechanics.js';
+import {
+  ensureConstraintDynamics, resolveConstraintReactions, commitConstraintDynamics, snapshotConstraintDynamics, constraintDynamicsAudit
+} from './destiny_constraint_dynamics.js';
+import {computeActualityAudit, actualityAuditSummary} from './destiny_power_dynamics.js';
+import {computeRelationalActualisation, becomingAudit} from './destiny_becoming_dynamics.js';
+import {commitRelationalMomentTraces,refreshRelationalTraceStates,relationalTraceAudit} from './destiny_relational_trace.js';
+import {reciprocalEncounterProcesses,commitReciprocalEncounterProcesses,reciprocalEncounterAudit} from './destiny_reciprocal_encounter.js';
+import {orientPotentialByWill, willAudit} from './destiny_will_dynamics.js';
+import {prepareSyntheticPossibility, commitImaginationDynamics, imaginationAudit} from './destiny_imagination_dynamics.js';
+import {preparePraxisDynamics, commitPraxisDynamics, praxisAudit} from './destiny_praxis_dynamics.js';
+import {activeFieldContext, conditionSuperposition, assessFieldActivation, fieldSyntaxAudit} from './destiny_field_syntax.js';
+import {situatedMoira, moiraAuditSummary} from './destiny_moira_dynamics.js';
+import {ensureBasinCircuit, contextualBasinCircuit, recordPreCollapseBasinFlows, recordPostCollapseBasinFlows, storeBasinContext, basinCircuitAudit} from './destiny_basin_circuit.js';
+import {acknowledgementAudit} from './destiny_acknowledgement_fields.js';
+import {singularFormCondition} from './destiny_condition_realities.js';
+import {applyPersonMetabolicTime, metabolicTimeAudit, ingestEnergy, ingestWater} from './destiny_metabolic_time.js';
+
+const same=(a,b)=>distance(a,b)<1e-9;
+const avg=xs=>xs.reduce((s,x)=>s+x,0)/(xs.length||1);
+
+export const TIMEBASE={defaultDtDays:1/24,daysPerYear:360};
+// Compatibility only. A numerical integration interval is NOT an ontological Moment.
+export const MOMENT_TIME=TIMEBASE;
+
+function key(x,y){return `${x},${y}`}
+function terrainAt(w,pos){const c=rasterCell(pos,w.w,w.h);return w.terrain?.get(key(c.x,c.y))||{river:0,elevation:0,exposure:0,moisture:.3,fertility:.3,woodland:.3,stone:.3,deepWater:0,aquatic:0,browse:.25}}
+function terrainHologram(t){
+  // LEGACY diagnostic projection retained for regression comparability only. Terrain does not
+  // canonically own Consciousness/Mental/Physical compartments in V1.03.
+  const g=clamp(avg([t.moisture??.3,t.fertility??.3,t.woodland??.2,t.stone??.2]));
+  const o=clamp(avg([t.elevation??0,t.river??0,t.deepWater??0,t.exposure??0]));
+  const pr=clamp(avg([t.browse??0,t.aquatic??0,t.moisture??.3]));
+  const L={C:clamp(.10+(t.fertility??.3)*.32+(t.moisture??.3)*.22),M:clamp(.10+o*.55+(t.woodland??.2)*.12),P:clamp(.10+g*.58+pr*.22)};
+  const out={};for(const l of ['C','M','P'])out[l]={ground:clamp(Math.sqrt(Math.max(.0001,L[l]*g))),order:clamp(Math.sqrt(Math.max(.0001,L[l]*Math.max(.04,o)))),process:clamp(Math.sqrt(Math.max(.0001,L[l]*Math.max(.04,pr))))};
+  return out;
+}
+function aggregateHolograms(hs){
+  const good=hs.filter(Boolean);const out={};for(const l of ['C','M','P']){out[l]={};for(const b of ['ground','order','process'])out[l][b]=clamp(avg(good.map(h=>h?.[l]?.[b]??0)));}return out;
+}
+function namedLayers(h){return {consciousness:{...(h?.C||{})},mind:{...(h?.M||{})},physical:{...(h?.P||{})}};}
+function bodyMass(f){return f.mass??(f.kind==='person'?.72:.3)}
+function bodyMobility(f){return f.kind==='person'?(f.material?.mobility??.5):(f.mobility??.45)}
+function bodyForce(f){return f.kind==='person'?(f.capacities?.forceTransmission??.5)*(f.material?.force??.5):(f.forceCapacity??.25)}
+function livingBodies(w){return [...w.forms.values()].filter(f=>f.alive&&(f.kind==='person'||f.kind==='animal'))}
+function nonlivingMatter(w){return [...w.forms.values()].filter(f=>f.alive&&f.kind!=='person'&&f.kind!=='animal'&&!(f instanceof RelationForm)&&!(f instanceof Whole))}
+
+function hash01(text){
+  let h=2166136261>>>0;
+  for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}
+  return h/4294967296;
+}
+function tinyTie(w,id,x,y){return (hash01(`${w.seed||0}:${w.clock}:${id}:${x},${y}`)-.5)*1e-7}
+
+function initializeEmbodiedPositions(w){
+  if(w._embodiedGeometryInitialized)return;
+  // Once finite matter has extent, initial Reality must already be physically admissible.
+  // A living Form cannot begin its history inside stone/wood/other rigid material and rely on
+  // the first Moment to repair an impossible prior state.
+  const solids=[...w.forms.values()]
+    .filter(f=>f.alive&&finiteMaterialForm(f))
+    .sort((a,b)=>a.id.localeCompare(b.id))
+    .map(f=>({pos:{...f.pos},r:formRadius(f),id:f.id}));
+  const placed=[];
+  for(const f of livingBodies(w).sort((a,b)=>a.id.localeCompare(b.id))){
+    const r=formRadius(f),base={...f.pos};
+    const clear=pos=>placed.every(o=>distance(pos,o.pos)>=r+o.r+.035)
+      &&solids.every(o=>distance(pos,o.pos)>=r+o.r+.015);
+    let chosen=clampPosition(base,w.w,w.h,r);
+    if(!clear(chosen)){
+      const offset=hash01(`${w.seed||0}:${f.id}:embodiment`)*Math.PI*2;
+      outer: for(let ring=1;ring<=10;ring++){
+        const rad=.24*ring;
+        for(let i=0;i<24;i++){
+          const a=offset+i*Math.PI/12;
+          const c=clampPosition({x:base.x+Math.cos(a)*rad,y:base.y+Math.sin(a)*rad},w.w,w.h,r);
+          if(clear(c)){chosen=c;break outer;}
+        }
+      }
+    }
+    f.pos={...chosen};f.prevPos={...chosen};placed.push({pos:{...chosen},r,id:f.id});
+  }
+  w._embodiedGeometryInitialized=true;
+}
+
+export function initializeWorldTime(w,{dtDays=TIMEBASE.defaultDtDays,daysPerYear=TIMEBASE.daysPerYear}={}){
+  // Chronology and ontology are deliberately separated. frame = numerical integration only.
+  if(w.frame==null)w.frame=Number.isFinite(w.round)?w.round:0;
+  if(w.elapsedDays==null)w.elapsedDays=0;
+  if(w.momentSerial==null)w.momentSerial=Number.isFinite(w.moment)?w.moment:0;
+  if(!Array.isArray(w.moments))w.moments=[];
+  w.time={dtDays,daysPerYear};
+  w.clock=w.elapsedDays;       // historical ageing/decay uses physical chronology
+  w.round=w.frame;            // legacy numerical-frame alias
+  w.day=Math.floor(w.elapsedDays);
+  w.moment=w.momentSerial;    // number of actualised local Moments, never elapsed time
+  ensureBasinCircuit(w);
+  ensureMaterialDynamics(w);
+  ensureMaterialTopology(w);
+  ensureStructuralMechanics(w);
+  initializeFiniteMaterialPositions(w);
+  initializeEmbodiedPositions(w);
+  for(const f of w.forms.values()){
+    if((f.kind==='person'||f.kind==='animal')&&f.birthDay==null){
+      f.birthDay=(f.parents?.length||f.birthRound>0)?w.elapsedDays:0;
+      if(f.baseAge==null)f.baseAge=f.age??(f.kind==='person'?20:1);
+    }
+  }
+  return w;
+}
+export function initializeMomentTime(w,opts={}){
+  // Deprecated name kept so older labs still load. daysPerMoment is read only as dtDays.
+  return initializeWorldTime(w,{dtDays:opts.dtDays??opts.daysPerMoment??TIMEBASE.defaultDtDays,daysPerYear:opts.daysPerYear??TIMEBASE.daysPerYear});
+}
+
+export function deriveWorldConditions(w){
+  const days=w.elapsedDays||0,daysPerYear=w.time?.daysPerYear||360;
+  const yearPhase=((days%daysPerYear)+daysPerYear)%daysPerYear/daysPerYear;
+  const phase=yearPhase*Math.PI*2;
+  const dayPhase=((days%1)+1)%1;
+  const seasonal=Math.sin((yearPhase-.25)*Math.PI*2);
+  // Chronological time now has its own diurnal rhythm. This is physical environment, not Moment cadence.
+  const solarArc=Math.max(0,Math.sin(Math.PI*dayPhase));
+  const daylight=clamp(solarArc*(.78+.16*Math.sin(phase)));
+  w.season=Math.floor(yearPhase*4)%4;
+  w.cycle={day:dayPhase,season:yearPhase,light:daylight,night:1-daylight,
+    seasonalCold:clamp(-seasonal),seasonalHeat:clamp(seasonal)};
+  w.weather={
+    cold:clamp(.38-.26*Math.sin(phase)+.13*Math.sin(days*.31)),
+    heat:clamp(.28+.30*Math.sin(phase)+.10*Math.sin(days*.19)),
+    wet:clamp(.32+.20*Math.sin(days*.13)+.15*Math.sin(days*.047)),
+    wind:clamp(.25+.22*Math.sin(days*.17+1.2)),
+    light:0
+  };
+  w.weather.light=clamp(daylight-.16*w.weather.wet-.12*w.weather.cold);
+  return {cycle:{...w.cycle},weather:{...w.weather}};
+}
+
+export function snapshotReality(w){
+  const forms=new Map();
+  for(const f of [...w.forms.values()].sort((a,b)=>a.id.localeCompare(b.id))){
+    forms.set(f.id,{
+      id:f.id,kind:f.kind,alive:!!f.alive,pos:{...f.pos},orientation:f.orientation??0,angularVelocity:f.angularVelocity??0,
+      material:{...(f.material||{})},body:f.body?{...f.body}:null,
+      mass:bodyMass(f),mobility:bodyMobility(f),force:bodyForce(f),
+      geometry:{radius:formRadius(f),reach:reachRadius(f),maxTravel:maxTravel(f,w.time?.dtDays||TIMEBASE.defaultDtDays)},
+      age:f.age??null,morphology:f.morphology??null,aquatic:!!f.aquatic,
+      aperture:f.aperture?{...f.aperture}:null,apparatus:f.apparatus?{...f.apparatus}:null,
+      capacities:f.capacities?{...f.capacities}:null,metabolism:f.metabolism?{...f.metabolism}:null,
+      // v1.04.4 — one canonical Form condition; reality-specific representations are contextual.
+      condition:singularFormCondition(w,f),
+      // Legacy diagnostic retained for regression only; canonical v1.03 basin state is contextual, not intrinsic Form anatomy.
+      hologram:intrinsicHologram(w,f),layers:namedHologram(w,f),legacyIntrinsicHologram:true
+    });
+  }
+  const terrain=new Map();for(const [k,t] of [...(w.terrain||new Map()).entries()].sort((a,b)=>a[0].localeCompare(b[0]))){const h=terrainHologram(t);terrain.set(k,{...t,hologram:h,layers:namedLayers(h)});}
+  const topology=snapshotMaterialTopology(w),structural=snapshotStructuralMechanics(w),constraints=snapshotConstraintDynamics(w);
+  return Object.freeze({frame:w.frame,momentCount:w.momentSerial,clock:w.clock,elapsedDays:w.elapsedDays,w:w.w,h:w.h,
+    weather:{...w.weather},cycle:{...w.cycle},forms,terrain,topology,structural,constraints});
+}
+
+function snapshotForm(s,id){return s.forms.get(id)}
+function snapshotTerrain(s,pos){const c=rasterCell(pos,s.w,s.h);return s.terrain.get(key(c.x,c.y))||{river:0,elevation:0,exposure:0,moisture:.3,fertility:.3,woodland:.3,stone:.3,deepWater:0,aquatic:0,browse:.25}}
+
+// ACCESSIBILITY ----------------------------------------------------------------
+// Accessibility is sampled numerically, but an ontological perception-Moment is recorded only
+// when access actually opens or materially changes. Sampling frequency must not manufacture encounters.
+function physicalAccessSignature(fs){return {visibility:fs.material?.visibility??0,stock:fs.material?.stock??0,integrity:fs.material?.integrity??fs.body?.integrity??1,orientation:fs.orientation??0};}
+function accessSignatureDistance(a,b){if(!a||!b)return 1;return avg(['visibility','stock','integrity'].map(k=>Math.abs((a[k]??0)-(b[k]??0))))+Math.min(.25,Math.abs((a.orientation??0)-(b.orientation??0))/Math.PI)*.25;}
+export function accessibilityPhase(w,s){
+  if(!w._accessState)w._accessState=new Map();
+  const activations=[],pairActivated=new Set(),seen=new Set();
+  const people=[...w.forms.values()].filter(f=>f instanceof Person&&f.alive).sort((a,b)=>a.id.localeCompare(b.id));
+  for(const p of people){
+    const ps=snapshotForm(s,p.id);if(!ps)continue;
+    const radius=3+Math.floor(clamp(p.apparatus?.receptor??.5)*2);
+    for(const fs of s.forms.values()){
+      if(!fs.alive||fs.id===p.id||fs.kind==='relation'||fs.kind==='whole')continue;
+      const d=distance(ps.pos,fs.pos),stateKey=`${p.id}|${fs.id}`;seen.add(stateKey);
+      const access=fs.kind==='person'||fs.kind==='animal'?sensorAccessSnapshot(ps,fs,s):clamp((p.apparatus?.receptor??.5)*(fs.material?.visibility??.5)*(s.weather.light??.6)*(1-d/(radius+2)));
+      const f=w.forms.get(fs.id);if(!f)continue;
+      const assim=assimilationPotential(p,f);
+      const salient=(fs.material?.water||0)>0||assim>.012||fs.kind==='person'||fs.kind==='animal'||(fs.material?.cover||0)>.2||finiteMaterialForm(f);
+      const prev=w._accessState.get(stateKey);
+      const active=salient&&(prev?.active?(d<=radius+.45&&access>.025):(d<=radius&&access>.075));
+      const sig=physicalAccessSignature(fs);
+      const changed=active&&(!prev?.active||Math.abs(access-(prev.access||0))>.20||Math.abs(d-(prev.distance??d))>.75||accessSignatureDistance(sig,prev.signature)>.14);
+      if(changed){
+        const known=p.known.get(fs.id),knownBefore=clamp(known?.confidence||0),knownAfter=clamp(Math.max(knownBefore,.25+access*.70));
+        p.known.set(fs.id,{confidence:knownAfter,direct:true,source:null,clock:w.clock,lastPos:{...fs.pos}});
+        const renderingBefore=prev?.active?clamp(prev.access||0):0,renderingAfter=clamp(access);
+        p.renderings.push({clock:w.clock,target:fs.id,attribute:'presence',value:1/(1+d),confidence:clamp(.22+access*.65),fresh:true});
+        if(p.renderings.length>240)p.renderings.shift();
+        activations.push({kind:prev?.active?'perception_change':'perception_open',observer:p.id,target:fs.id,access,distance:d,
+          knownConfidenceBefore:knownBefore,knownConfidenceAfter:knownAfter,mentalDelta:clamp(Math.max(knownAfter-knownBefore,Math.abs(renderingAfter-renderingBefore)*.35))});
+        if(fs.kind==='person')pairActivated.add([p.id,fs.id].sort().join('|'));
+      }else if(prev?.active&&!active){
+        activations.push({kind:'perception_close',observer:p.id,target:fs.id,access:0,distance:d,mentalDelta:0});
+        if(fs.kind==='person')pairActivated.add([p.id,fs.id].sort().join('|'));
+      }
+      w._accessState.set(stateKey,{active,access,distance:d,signature:sig});
+    }
+  }
+  const dt=w.time?.dtDays??TIMEBASE.defaultDtDays;
+  // Co-presence is duration, not a sample count. Encounter/witness only increments on an access activation.
+  for(let i=0;i<people.length;i++)for(let j=i+1;j<people.length;j++){
+    const a=people[i],b=people[j],as=snapshotForm(s,a.id),bs=snapshotForm(s,b.id);if(!as||!bs)continue;
+    const d=distance(as.pos,bs.pos),r=w.rel(a.id,b.id),pk=[a.id,b.id].sort().join('|');
+    if(d<=1.35)r.coPresence+=dt;
+    if(!pairActivated.has(pk))continue;
+    r.encounters++;r.witness++;
+    activateEncounterAttributes(w,a,b,d<=1.35?'embodied_co_presence':'perceptual_encounter');
+    activateEncounterAttributes(w,b,a,d<=1.35?'embodied_co_presence':'perceptual_encounter');
+    activateEncounterAttributes(w,r,a,'moment_participant_activation');
+    activateEncounterAttributes(w,r,b,'moment_participant_activation');
+    recordOthernessMoment(w,a,b);recordOthernessMoment(w,b,a);
+  }
+  return activations;
+}
+
+// PROCESS GENERATION -----------------------------------------------------------
+function protectionAtSnapshot(s,pos){
+  let best=null,bv=-1;
+  for(const f of s.forms.values()){
+    if(!f.alive||f.kind==='person'||f.kind==='animal'||f.kind==='relation'||f.kind==='whole')continue;
+    if(distance(f.pos,pos)>(f.geometry?.radius??.2)+.58)continue;
+    const v=(f.material?.cover||0)+(f.material?.warmth||0)*.35;
+    if(v>bv){bv=v;best=f;}
+  }
+  return best;
+}
+function candidatePositions(w,entity,es,s,drivers){
+  const travel=es.geometry?.maxTravel??maxTravel(entity,w.time?.dtDays||TIMEBASE.defaultDtDays),r=es.geometry?.radius??formRadius(entity);
+  const out=[],seen=new Set();
+  const push=p=>{const q=clampPosition(p,w.w,w.h,r),k=`${q.x.toFixed(6)},${q.y.toFixed(6)}`;if(!seen.has(k)){seen.add(k);out.push(q)}};
+  push(es.pos);
+  // Geometry supplies possible trajectories, not choices: fixed directional possibilities plus
+  // direct relational gradients exposed by the current Moment.
+  for(let i=0;i<16;i++){const a=i*Math.PI/8;push({x:es.pos.x+Math.cos(a)*travel,y:es.pos.y+Math.sin(a)*travel});}
+  for(const d of drivers||[]){
+    if(!d.target)continue;const target=snapshotForm(s,d.target);if(!target)continue;
+    let dir=displacement(es.pos,target.pos);if(d.toward===false)dir={x:-dir.x,y:-dir.y};
+    let amount=travel;
+    if(d.toward!==false){
+      const gap=(target.kind==='person'||target.kind==='animal')
+        ?(d.kind==='material_assimilation'?0:(es.geometry?.radius??r)+(target.geometry?.radius??.25)+.18)
+        :(es.geometry?.reach??reachRadius(entity))+(target.geometry?.radius??.18)-.02;
+      amount=Math.min(travel,Math.max(0,distance(es.pos,target.pos)-Math.max(0,gap)));
+    }
+    push(add(es.pos,unit(dir),amount));
+  }
+  return out;
+}
+function nearestSnapshot(s,origin,pred,max=9){
+  let best=null,bd=Infinity;
+  for(const f of s.forms.values())if(f.alive&&pred(f)){
+    const d=distance(origin,f.pos);if(d<=max&&d<bd){best=f;bd=d;}
+  }return best;
+}
+function sensorAccessSnapshot(a,b,s){
+  const d=distance(a.pos,b.pos);if(a.kind==='person')return clamp((a.apparatus?.receptor??.5)*(b.material?.visibility??.6)*(s.weather.light??.6)*(1-d/8));
+  const ap=a.aperture||{};
+  const visual=clamp((ap.vision??.35)*(s.weather.light??.6)*(1-d/8));
+  const smell=clamp((ap.smell??.4)*(1-(s.weather.wind??.2)*.18)*(1-d/10));
+  const hearing=clamp((ap.hearing??.4)*(1-d/9));
+  const vibration=clamp((ap.vibration??.1)*(a.aquatic?snapshotTerrain(s,a.pos).aquatic:.18)*(1-d/7));
+  return Math.max(visual,smell,hearing,vibration);
+}
+function livingAssimilationPotential(receiver,source){
+  if(!receiver?.body||!source?.body)return 0;
+  const m=source.material||{},meta=receiver.metabolism||{nutrient:.65,fiber:.12,organic:.55};
+  // Living tissue can be materially compatible with another body, but is not transferable while coherent.
+  // `organic` does not create nourishment by itself; tissue composition + receiver metabolism do.
+  const structuralAccess=clamp(1-(m.rigidity??0)*.55-(m.hardness??0)*.35+(m.moisture??.6)*.15,.03,1);
+  return clamp(((m.nutrient??.6)*(meta.nutrient??.65)+(m.fiber??.05)*(meta.fiber??.12)*.08)*structuralAccess);
+}
+function materialAssimilationPotentialSnapshot(receiver,source){
+  const m=source.material||{},meta=receiver.metabolism||{nutrient:.65,fiber:.12,organic:.55};
+  const structuralAccess=clamp(1-(m.rigidity??0)*.55-(m.hardness??0)*.35+(m.moisture??m.water??0)*.15,.03,1);
+  const biochemical=clamp((m.nutrient??m.food??0)*(meta.nutrient??.65)+(m.fiber??0)*(meta.fiber??.12)*.08);
+  return clamp((m.stock??0)*biochemical*structuralAccess);
+}
+function distributePressure(kind,pressure,candidates,limit=6){
+  if(pressure<=0||!candidates.length)return [];
+  const ranked=[...candidates].sort((a,b)=>b.raw-a.raw||a.target.localeCompare(b.target)).slice(0,limit);
+  const total=ranked.reduce((s,x)=>s+Math.max(0,x.raw),0);if(total<=0)return [];
+  // One bodily pressure, many conduits: available sources route the pressure; they do not multiply it.
+  return ranked.map(x=>({kind,target:x.target,weight:pressure*(x.raw/total),toward:true}));
+}
+function personDrivers(w,p,ps,s){
+  const drivers=[];
+  const hunger=clamp(1-(ps.body?.energy??1)),thirst=clamp(1-(ps.body?.water??1));
+  const waterConduits=[],assimConduits=[];
+  for(const [id,k] of p.known||[]){
+    const f=snapshotForm(s,id);if(!f?.alive)continue;
+    const d=distance(ps.pos,f.pos),conf=k.confidence??.4;if(d>8)continue;
+    if(f.kind!=='person'&&f.kind!=='animal'){
+      if((f.material?.water||0)>.01)waterConduits.push({target:id,raw:(f.material.water||1)*(f.material.stock||1)*conf/(1+d*.3)});
+      const ap=materialAssimilationPotentialSnapshot(ps,f);
+      if(ap>.012)assimConduits.push({target:id,raw:ap*conf/(1+d*.3)});
+    }
+  }
+  drivers.push(...distributePressure('material_water',thirst*.52,waterConduits));
+  drivers.push(...distributePressure('material_assimilation',hunger*.52,assimConduits));
+  for(const q of s.forms.values())if(q.alive&&q.id!==p.id&&(q.kind==='person'||q.kind==='animal')){
+    const d=distance(ps.pos,q.pos);if(d>6)continue;
+    const access=sensorAccessSnapshot(ps,q,s);if(access<.05)continue;
+    if(q.kind==='person'){
+      const r=w.relations.get([p.id,q.id].sort().join('|'));
+      if(r){
+        // Conductance is the capacity for change to pass through a relation; autonomy is retained
+        // organisation. Neither is positive attraction. Directional movement requires an actual
+        // retained consequence, not mere proximity or relational existence.
+        const own=r.directionalConsequence?.[p.id]||{positive:0,negative:0,net:0};
+        // Direction comes only from retained consequences borne by this participant (plus legacy
+        // compatibility traces), never from relation existence or consequence magnitude alone.
+        const attraction=clamp(Math.max(0,own.net||0)*.72+(r.benefit||0)*.40);
+        const repulsion=clamp(Math.max(0,-(own.net||0))*.72+(r.harm||0)*.40+(p.mismatchDebt||0)*.03);
+        if(attraction>.01)drivers.push({kind:'relational_benefit_trace',target:q.id,weight:attraction*access/(1+d*.18),toward:true});
+        if(repulsion>.01)drivers.push({kind:'relational_harm_trace',target:q.id,weight:repulsion*access/(1+d*.18),toward:false});
+      }
+    }
+    if(bodyMass(q)>bodyMass(ps)*1.35)drivers.push({kind:'bodily_exposure',target:q.id,weight:access*.10,toward:false});
+  }
+  const t=snapshotTerrain(s,ps.pos),prot=protectionAtSnapshot(s,ps.pos);
+  const exposure=clamp((s.weather.cold+s.weather.wet+s.weather.wind)*.22+t.exposure*.20-(prot?.material?.cover||0)*.28);
+  if(exposure>.08){
+    const target=nearestSnapshot(s,ps.pos,f=>(f.material?.cover||0)>.35||(f.material?.warmth||0)>.25,7);
+    if(target)drivers.push({kind:'environmental_protection',target:target.id,weight:exposure*.34,toward:true});
+  }
+  return drivers;
+}
+function animalDrivers(w,a,as,s){
+  const drivers=[],hunger=clamp(1-(as.body?.energy??1)),thirst=clamp(1-(as.body?.water??1));
+  const t=snapshotTerrain(s,as.pos);
+  if(thirst>.08)drivers.push({kind:'environmental_moisture',target:null,weight:thirst*.34,toward:null});
+  if(hunger>.12)drivers.push({kind:as.aquatic?'environmental_aquatic':'environmental_browse',target:null,weight:hunger*.30,toward:null});
+  if(hunger>.20){
+    let best=null,bscore=0;
+    for(const f of s.forms.values()){
+      if(!f.alive||f.id===a.id||f.kind==='relation'||f.kind==='whole')continue;
+      const d=distance(as.pos,f.pos);if(d>8)continue;
+      const living=f.kind==='person'||f.kind==='animal';
+      if(living){
+        // A living body is not directly 'food'. Orientation toward another body is only
+        // opened by a morphology capable of materially disrupting/assimilating tissue.
+        const predatoryAperture=(as.metabolism?.nutrient??0)>.45&&bodyForce(as)>.18&&bodyMass(f)<bodyMass(as)*.90;
+        if(!predatoryAperture)continue;
+      }
+      const ap=living?livingAssimilationPotential(as,f):materialAssimilationPotentialSnapshot(as,f);
+      if(ap<=.02)continue;
+      const access=living?sensorAccessSnapshot(as,f,s):clamp((as.aperture?.smell??.4)*(1-d/8));
+      const score=ap*access/(1+d*.25);if(score>bscore){bscore=score;best=f;}
+    }
+    if(best)drivers.push({kind:'material_assimilation',target:best.id,weight:hunger*bscore*.50,toward:true});
+  }
+  for(const other of s.forms.values())if(other.alive&&other.id!==a.id&&(other.kind==='person'||other.kind==='animal')){
+    const d=distance(as.pos,other.pos);if(d>7)continue;const access=sensorAccessSnapshot(as,other,s);if(access<.12)continue;
+    if(bodyMass(other)>bodyMass(as)*1.22)drivers.push({kind:'bodily_exposure',target:other.id,weight:access*.22,toward:false});
+  }
+  return drivers;
+}
+function scorePosition(w,entity,es,s,pos,drivers){
+  const t=snapshotTerrain(s,pos);let score=tinyTie(w,entity.id,pos.x,pos.y);
+  if(entity.kind==='animal'){
+    if(es.aquatic)score+=(t.aquatic||0)*(es.metabolism?.aquatic||0)*.42+(t.deepWater||0)*.20;
+    else score+=(t.browse||0)*(es.metabolism?.terrainFiber||0)*.24+(t.moisture||0)*.06+(1-(t.exposure||0))*.04;
+  }
+  for(const d of drivers){
+    if(d.target){const target=snapshotForm(s,d.target);if(!target)continue;const before=distance(es.pos,target.pos),after=distance(pos,target.pos);if(after<before)score+=d.toward===false?-d.weight:d.weight;else if(after>before)score+=d.toward===false?d.weight:-d.weight*.72;}
+    else if(d.kind==='environmental_moisture')score+=d.weight*(t.moisture||0);
+    else if(d.kind==='environmental_aquatic')score+=d.weight*(t.aquatic||0);
+    else if(d.kind==='environmental_browse')score+=d.weight*(t.browse||0);
+  }
+  // An accessible finite body is a material limit on ordinary trajectory, not merely another score target.
+  // This does not make collision impossible: inaccessible bodies and body-directed material pressure can still meet.
+  if(distance(es.pos,pos)>1e-9){
+    for(const other of s.forms.values()){
+      if(!other.alive||other.id===entity.id||(other.kind!=='person'&&other.kind!=='animal'))continue;
+      const access=sensorAccessSnapshot(es,other,s);if(access<.05)continue;
+      const bodyDirected=drivers.some(d=>d.kind==='material_assimilation'&&d.target===other.id&&d.toward!==false);
+      if(bodyDirected)continue;
+      const c=sweptContact(es.pos,pos,es.geometry?.radius??.25,other.pos,other.pos,other.geometry?.radius??.25);
+      if(c)score-=.55*access+.08;
+    }
+  }
+  const travelled=distance(es.pos,pos),maxD=Math.max(.001,es.geometry?.maxTravel??1);
+  score-=.006*(travelled/maxD);
+  // inertia is a constraint: remaining is always a live trajectory unless pressure overcomes it.
+  if(travelled<1e-9)score+=.012*(1-bodyMobility(es));
+  return score;
+}
+function dominantDriver(drivers){return [...(drivers||[])].sort((a,b)=>(b.weight||0)-(a.weight||0)||String(a.kind).localeCompare(String(b.kind)))[0]||null;}
+function driverSignature(drivers){const d=dominantDriver(drivers);return d?`${d.kind}|${d.target||''}|${d.toward===false?'away':'toward'}`:'inertial';}
+function planMotion(w,entity,es,s,drivers,fieldContext){
+  if(!w._motionFlow)w._motionFlow=new Map();if(!w._motionSignature)w._motionSignature=new Map();
+  const unconditionedPositions=candidatePositions(w,entity,es,s,drivers).map(to=>({to,score:scorePosition(w,entity,es,s,to,drivers)}))
+    .sort((a,b)=>b.score-a.score||`${a.to.x.toFixed(6)},${a.to.y.toFixed(6)}`.localeCompare(`${b.to.x.toFixed(6)},${b.to.y.toFixed(6)}`));
+  // v1.03: raw finite routes are only a representable projection from the open horizon. Active Field syntax
+  // conditions which routes can coherently enter live superposition BEFORE Will/Process selection.
+  const moira=situatedMoira(w,s,entity,{fieldContext,rawCandidates:unconditionedPositions,drivers});
+  if(!w._moiraState)w._moiraState=new Map();if(moira)w._moiraState.set(entity.id,moira);
+  fieldContext.moira=moira?{carrying:moira.carrying,demand:moira.demand,deformation:moira.deformation,narrowestMargin:moira.narrowestMargin,maxDeformation:moira.maxDeformation,basinLimits:moira.basinLimits,meta:moira.meta}:null;
+  const superposition=conditionSuperposition(w,s,entity,fieldContext,unconditionedPositions,drivers,moira);
+  const rawPositions=superposition.positions;
+  // v1.00: Mind may hold a synthetic configuration assembled from retained Forms + witnessed
+  // relation-patterns. It remains non-Physical; Will may only use it to orient already-live Processes.
+  const imagination=entity.kind==='person'?prepareSyntheticPossibility(w,entity,es,s,drivers,{dtDays:w.time?.dtDays||TIMEBASE.defaultDtDays}):{projection:null,events:[]};
+  // v1.01: Praxis does not script actions. It reads prior Physical error and may revise only the
+  // next local discrepancy-goal presented to Will, using an already encountered obstruction.
+  const praxis=entity.kind==='person'?preparePraxisDynamics(w,entity,es,s,imagination.projection,{dtDays:w.time?.dtDays||TIMEBASE.defaultDtDays}):{projection:imagination.projection,events:[]};
+  const will=orientPotentialByWill(w,entity,es,s,drivers,rawPositions,{dtDays:w.time?.dtDays||TIMEBASE.defaultDtDays,syntheticPossibility:praxis.projection});
+  const positions=will.positions||rawPositions;
+  let top=positions[0]||{to:{...es.pos},score:0};const baseSignature=driverSignature(drivers),signature=will.effectiveSignature||baseSignature,previousSignature=w._motionSignature.get(entity.id),processChanged=previousSignature!=null&&previousSignature!==signature;w._motionSignature.set(entity.id,signature);const prev=w._motionFlow.get(entity.id),travel=es.geometry?.maxTravel??0;
+  let continued=false;
+  if(prev&&prev.signature===signature&&!w._confronted?.has(entity.id)&&prev.dir&&travel>1e-10){
+    let keep=true;const dom=dominantDriver(drivers);
+    if(!will.effectiveSignature&&dom?.target){const target=snapshotForm(s,dom.target);if(target){const desired=unit(displacement(es.pos,target.pos));if(vectorLength(desired)>1e-9&&dot(desired,prev.dir)<.82)keep=false;}}
+    if(keep){const candidate=clampPosition(add(es.pos,prev.dir,travel),w.w,w.h,es.geometry?.radius??.2);top={to:candidate,score:scorePosition(w,entity,es,s,candidate,drivers)};continued=true;}
+  }
+  const floor=Math.max(.008,(positions[0]?.score??top.score)*.70),alts=positions.filter(x=>x.score>=floor&&distance(x.to,top.to)>1e-7).slice(0,5);
+  return {type:'motion',form:entity.id,from:{...es.pos},to:{...top.to},score:top.score,
+    liveAlternatives:alts,drivers,driverSignature:signature,newProcess:processChanged,willProjection:will.projection,willEvent:will.event,willOverride:will.override,rawTop:will.rawTop,
+    counterfactualProjection:praxis.projection,mindEvents:[...(imagination.events||[]),...(praxis.events||[])],
+    fieldContext,fieldSuperposition:superposition,moira,fieldActivation:assessFieldActivation(w,entity,fieldContext,superposition,moira)};
+}
+function planMaterialTransfer(w,entity,es,s){
+  const out=[],hunger=clamp(1-(es.body?.energy??1)),thirst=clamp(1-(es.body?.water??1));
+  for(const fs of s.forms.values()){
+    if(!fs.alive||fs.id===entity.id)continue;
+    if(distance(fs.pos,es.pos)>(es.geometry?.reach??.5)+(fs.geometry?.radius??.18))continue;
+    if(fs.kind==='relation'||fs.kind==='whole')continue;
+    // A living body is not a directly transferable reservoir. Its presence can affect
+    // trajectory/Force, but matter becomes available only after loss of coherence.
+    if(fs.kind==='person'||fs.kind==='animal')continue;
+    if((fs.material?.water||0)>.01&&thirst>.05)out.push({type:'material_transfer',mode:'water',receiver:entity.id,source:fs.id,requested:Math.min(.10+.18*thirst,fs.material.stock||0),weight:thirst*(fs.material.water||1)});
+    // Material transfer is only from non-living material Forms.
+    const ap=materialAssimilationPotentialSnapshot(es,fs);
+    if(ap>.018&&hunger>.08)out.push({type:'material_transfer',mode:'assimilation',receiver:entity.id,source:fs.id,requested:Math.min(.025+.055*hunger,fs.material?.stock??0),weight:hunger*ap,potential:ap,livingSource:false});
+  }
+  return out.sort((a,b)=>b.weight-a.weight).slice(0,1);
+}
+
+function planTerrainTransfer(w,entity,es,s){
+  if(entity.kind!=='animal')return [];
+  const t=snapshotTerrain(s,es.pos),out=[];
+  const hunger=clamp(1-(es.body?.energy??1)),thirst=clamp(1-(es.body?.water??1));
+  if(thirst>.05&&(t.moisture||0)>.20)out.push({type:'terrain_transfer',mode:'water',receiver:entity.id,cell:rasterCell(es.pos,s.w,s.h),requested:.010+.018*thirst,weight:thirst*(t.moisture||0)});
+  if(hunger>.08){
+    if(es.aquatic){
+      const p=clamp((t.aquatic||0)*(es.metabolism?.aquatic||0));
+      if(p>.025)out.push({type:'terrain_transfer',mode:'aquatic_biomass',receiver:entity.id,cell:rasterCell(es.pos,s.w,s.h),requested:.008+.014*hunger,weight:hunger*p,potential:p});
+    }else{
+      const p=clamp((t.browse||0)*(es.metabolism?.terrainFiber||0));
+      if(p>.025)out.push({type:'terrain_transfer',mode:'terrestrial_biomass',receiver:entity.id,cell:rasterCell(es.pos,s.w,s.h),requested:.008+.014*hunger,weight:hunger*p,potential:p});
+    }
+  }
+  return out;
+}
+
+function processParticipants(p){return [p.form,p.receiver,p.source,p.target,...(p.actors||[])].filter(Boolean);}
+function processHologram(s,p){
+  const hs=processParticipants(p).map(id=>s.forms.get(id)?.hologram).filter(Boolean);
+  const base=aggregateHolograms(hs.length?hs:[{C:{ground:.1,order:.1,process:.1},M:{ground:.1,order:.1,process:.1},P:{ground:.1,order:.1,process:.1}}]);
+  let activity=.08;if(p.type==='motion')activity=clamp(distance(p.from,p.to)/(s.forms.get(p.form)?.geometry?.maxTravel||1));
+  else if(p.type.includes('transfer'))activity=clamp((p.requested||0)*4);else if(p.type==='metabolism'||p.type==='decomposition')activity=clamp((p.dtDays||0)*4);
+  const out=JSON.parse(JSON.stringify(base));for(const l of ['C','M','P'])out[l].process=clamp(out[l].process*.72+activity*.28);
+  return out;
+}
+export function generateProcesses(w,s){
+  const processes=[],fieldContexts={},superpositions={},fieldActivations=[];
+  for(const entity of livingBodies(w).sort((a,b)=>a.id.localeCompare(b.id))){
+    const es=snapshotForm(s,entity.id);if(!es)continue;
+    // v1.03 canonical ordering: situated Reality -> active Field syntax -> field-conditioned horizon -> Will/Process.
+    const drivers=entity.kind==='person'?personDrivers(w,entity,es,s):animalDrivers(w,entity,es,s);
+    const fc=activeFieldContext(w,s,entity,{drivers});fieldContexts[entity.id]=fc;
+    const motion=planMotion(w,entity,es,s,drivers,fc);processes.push(motion);superpositions[entity.id]=motion.fieldSuperposition;
+    if(motion.fieldActivation)fieldActivations.push(motion.fieldActivation);
+    processes.push(...planMaterialTransfer(w,entity,es,s));
+    processes.push(...planTerrainTransfer(w,entity,es,s));
+    processes.push({type:'metabolism',form:entity.id,dtDays:w.time.dtDays});
+  }
+  for(const f of nonlivingMatter(w))if(f.kind==='organic')processes.push({type:'decomposition',form:f.id,dtDays:w.time.dtDays});
+  // v1.07: reciprocal encounter is an event-driven relational actuality, not an authored social action.
+  processes.push(...reciprocalEncounterProcesses(w,s));
+  const mapped=processes.map(p=>{const h=processHologram(s,p);return {...p,hologram:h,layers:namedLayers(h)};});
+  mapped.fieldContexts=fieldContexts;mapped.superpositions=superpositions;mapped.fieldActivations=fieldActivations;
+  return mapped;
+}
+
+// RESOLUTION ------------------------------------------------------------------
+function resolveTransfers(w,s,processes){
+  const transfers=processes.filter(p=>p.type==='material_transfer'),bySource=new Map();
+  for(const p of transfers){if(!bySource.has(p.source))bySource.set(p.source,[]);bySource.get(p.source).push(p);}
+  const resolved=[];
+  for(const [source,reqs] of [...bySource].sort((a,b)=>a[0].localeCompare(b[0]))){
+    const ss=snapshotForm(s,source);if(!ss?.alive)continue;
+    const available=ss.kind==='person'||ss.kind==='animal'?bodyMass(ss)*.10:(ss.material?.stock||0);
+    const total=reqs.reduce((q,r)=>q+r.requested,0),scale=total>available&&total>0?available/total:1;
+    for(const r of reqs.sort((a,b)=>a.receiver.localeCompare(b.receiver)))resolved.push({...r,amount:r.requested*scale});
+  }
+  return resolved;
+}
+function resolveTerrainTransfers(w,s,processes){
+  const reqs=processes.filter(p=>p.type==='terrain_transfer'),groups=new Map(),resolved=[];
+  for(const r of reqs){const k=`${r.cell.x},${r.cell.y}|${r.mode}`;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);}
+  for(const [k,rs] of [...groups].sort((a,b)=>a[0].localeCompare(b[0]))){
+    const [cellKey,mode]=k.split('|'),[x,y]=cellKey.split(',').map(Number),t=snapshotTerrain(s,{x,y});
+    const available=mode==='water'?Math.max(.02,(t.moisture||0)*.12):mode==='aquatic_biomass'?(t.aquatic||0)*.12:(t.browse||0)*.12;
+    const total=rs.reduce((q,r)=>q+r.requested,0),scale=total>available&&total>0?available/total:1;
+    for(const r of rs.sort((a,b)=>a.receiver.localeCompare(b.receiver)))resolved.push({...r,amount:r.requested*scale});
+  }
+  return resolved;
+}
+function resolveMotions(w,s,processes){return processes.filter(p=>p.type==='motion').map(p=>({...p})).sort((a,b)=>a.form.localeCompare(b.form));}
+function collisionEffect(af,bf,relativeSpeed){
+  const total=Math.max(.001,af.mass+bf.mass),reduced=(af.mass*bf.mass)/total;
+  const transmitted=clamp(.55+.25*(af.force??.25)+.25*(bf.force??.25),.4,1.2);
+  const impulse=relativeSpeed*reduced*transmitted;if(impulse<.035)return {damageA:0,damageB:0,impulse};
+  const base=clamp((impulse-.025)*.040,0,.04);
+  return {impulse,
+    damageA:clamp(base*(bf.mass/total)*(1+(bf.force??.25)*.25),0,.035),
+    damageB:clamp(base*(af.mass/total)*(1+(af.force??.25)*.25),0,.035)};
+}
+function resolveEmbodiedContact(w,s,motions){
+  // Event-driven geometry within one integration interval. All trajectories begin from the same prior Reality; resulting contacts may seed local Moments.
+  // Contact constrains normal motion but does not freeze either body: tangential/separating motion remains live.
+  // The physical event is CONTACT. Impulse/damage describe what Force actually passed through that conduit.
+  const states=new Map(motions.map(m=>[m.form,{m,pos:{...m.from},remaining:displacement(m.from,m.to),contacted:false}]));
+  const contactsOut=[],seenPairs=new Set();let iterations=0;
+  while(iterations++<motions.length*5+24){
+    const active=[...states.values()];let earliest=Infinity,contacts=[];
+    for(let i=0;i<active.length;i++)for(let j=i+1;j<active.length;j++){
+      const A=active[i],B=active[j],af=snapshotForm(s,A.m.form),bf=snapshotForm(s,B.m.form);if(!af||!bf)continue;
+      const a1=add(A.pos,A.remaining,1),b1=add(B.pos,B.remaining,1);
+      if(same(A.pos,a1)&&same(B.pos,b1))continue;
+      const c=sweptContact(A.pos,a1,af.geometry?.radius??.25,B.pos,b1,bf.geometry?.radius??.25);if(!c)continue;
+      if(c.t<earliest-1e-8){earliest=c.t;contacts=[{A,B,af,bf,c}];}
+      else if(Math.abs(c.t-earliest)<=1e-8)contacts.push({A,B,af,bf,c});
+    }
+    if(!Number.isFinite(earliest)){
+      for(const st of active){st.pos=add(st.pos,st.remaining,1);st.remaining={x:0,y:0};}
+      break;
+    }
+    // Every body advances through the same fraction of unresolved Moment-time.
+    for(const st of active){st.pos=add(st.pos,st.remaining,earliest);st.remaining={x:st.remaining.x*(1-earliest),y:st.remaining.y*(1-earliest)};}
+
+    // Resolve simultaneous contacts canonically. The closing normal component is shared according to mass;
+    // tangential and separating components remain. Bodies cannot pass through each other, but contact does
+    // not abolish their remaining possibility-space.
+    contacts.sort((x,y)=>[x.af.id,x.bf.id].sort().join('|').localeCompare([y.af.id,y.bf.id].sort().join('|')));
+    let changed=false;
+    for(const x of contacts){
+      const pair=[x.af.id,x.bf.id].sort().join('|'),A=x.A,B=x.B;
+      let n=unit(displacement(B.pos,A.pos));
+      if(vectorLength(n)<1e-9)n=unit(displacement(x.bf.pos,x.af.pos));
+      if(vectorLength(n)<1e-9)n={x:1,y:0};
+      const an=dot(A.remaining,n),bn=dot(B.remaining,n),relativeNormal=an-bn;
+      // n points B -> A. relativeNormal < 0 means the two remaining motions are closing.
+      if(relativeNormal< -1e-10){
+        const ma=Math.max(.03,x.af.mass??.3),mb=Math.max(.03,x.bf.mass??.3),common=(ma*an+mb*bn)/(ma+mb);
+        A.remaining={x:A.remaining.x+n.x*(common-an),y:A.remaining.y+n.y*(common-an)};
+        B.remaining={x:B.remaining.x+n.x*(common-bn),y:B.remaining.y+n.y*(common-bn)};
+        A.contacted=B.contacted=true;changed=true;
+      }
+      if(!seenPairs.has(pair)){
+        seenPairs.add(pair);const incomingSpeed=x.c.relativeSpeed/Math.max(1e-9,w.time?.dtDays??TIMEBASE.defaultDtDays);
+        const eff=collisionEffect(x.af,x.bf,incomingSpeed);
+        contactsOut.push({type:'bodily_contact',actors:[x.af.id,x.bf.id],relativeSpeed:incomingSpeed,impulse:eff.impulse,
+          impact:eff.impulse>=.035,effects:{[x.af.id]:eff.damageA,[x.bf.id]:eff.damageB}});
+      }
+    }
+    // t=0 contact with no closing component is already non-penetrating; allow the remaining paths to continue.
+    if(earliest<1e-10&&!changed){
+      for(const st of active){st.pos=add(st.pos,st.remaining,1);st.remaining={x:0,y:0};}
+      break;
+    }
+  }
+  // Multi-body contact can create a positional constraint that pairwise velocity projection alone cannot
+  // satisfy in one pass. Enforce finite-body non-penetration canonically after dynamics resolve.
+  const ordered=[...states.values()].sort((a,b)=>a.m.form.localeCompare(b.m.form));
+  // Contact response can redirect a remaining trajectory toward a boundary even when its original
+  // candidate endpoint was admissible. Boundary projection therefore precedes non-penetration.
+  for(const st of ordered){const fs=snapshotForm(s,st.m.form);st.pos=clampPosition(st.pos,w.w,w.h,fs?.geometry?.radius??.2);}
+  for(let pass=0;pass<18;pass++){
+    let corrected=false;
+    for(let i=0;i<ordered.length;i++)for(let j=i+1;j<ordered.length;j++){
+      const A=ordered[i],B=ordered[j],af=snapshotForm(s,A.m.form),bf=snapshotForm(s,B.m.form);if(!af||!bf)continue;
+      const minD=(af.geometry?.radius??.25)+(bf.geometry?.radius??.25),d=distance(A.pos,B.pos);
+      if(d>=minD-1e-8)continue;
+      let n=d>1e-10?unit(displacement(B.pos,A.pos)):null;
+      if(!n){let h=0;for(const ch of `${af.id}|${bf.id}`)h=(h*33+ch.charCodeAt(0))>>>0;const a=(h%360)*Math.PI/180;n={x:Math.cos(a),y:Math.sin(a)};}
+      const overlap=minD-d+2e-7,ia=1/Math.max(.03,af.mass??.3),ib=1/Math.max(.03,bf.mass??.3),z=ia+ib;
+      A.pos=clampPosition(add(A.pos,n,overlap*(ia/z)),w.w,w.h,af.geometry?.radius??.25);
+      B.pos=clampPosition(add(B.pos,n,-overlap*(ib/z)),w.w,w.h,bf.geometry?.radius??.25);
+      // If a world boundary absorbed one body's share, give the unresolved separation to the other body.
+      let residual=minD-distance(A.pos,B.pos)+2e-7;
+      if(residual>1e-8){B.pos=clampPosition(add(B.pos,n,-residual),w.w,w.h,bf.geometry?.radius??.25);residual=minD-distance(A.pos,B.pos)+2e-7;}
+      if(residual>1e-8){A.pos=clampPosition(add(A.pos,n,residual),w.w,w.h,af.geometry?.radius??.25);}
+      A.contacted=B.contacted=true;corrected=true;
+      const pair=[af.id,bf.id].sort().join('|');
+      if(!seenPairs.has(pair)){seenPairs.add(pair);contactsOut.push({type:'bodily_contact',actors:[af.id,bf.id],relativeSpeed:0,impulse:0,impact:false,constraintOnly:true,effects:{[af.id]:0,[bf.id]:0}});}
+    }
+    if(!corrected)break;
+  }
+  // Rare dense multi-contact configurations can remain geometrically inconsistent after pairwise
+  // projection. Project the lightest involved body to the nearest local admissible position rather
+  // than permitting two finite bodies to occupy the same material volume. This is a numerical
+  // constraint resolution, not an authored behaviour.
+  const clearAt=(id,pos,r)=>{for(const other of ordered){if(other.m.form===id)continue;const of=snapshotForm(s,other.m.form);if(!of)continue;if(distance(pos,other.pos)<r+(of.geometry?.radius??.25)-1e-7)return false;}return true;};
+  for(let guard=0;guard<24;guard++){
+    let worst=null;
+    for(let i=0;i<ordered.length;i++)for(let j=i+1;j<ordered.length;j++){
+      const A=ordered[i],B=ordered[j],af=snapshotForm(s,A.m.form),bf=snapshotForm(s,B.m.form);if(!af||!bf)continue;
+      const ov=(af.geometry?.radius??.25)+(bf.geometry?.radius??.25)-distance(A.pos,B.pos);
+      if(ov>1e-6&&(!worst||ov>worst.ov))worst={A,B,af,bf,ov};
+    }
+    if(!worst)break;
+    const {A,B,af,bf}=worst,moveA=(af.mass??.3)<(bf.mass??.3)||((af.mass??.3)===(bf.mass??.3)&&af.id>bf.id);
+    const options=moveA?[[A,af],[B,bf]]:[[B,bf],[A,af]];let placed=false;
+    for(const [st,fs] of options){
+      const r=fs.geometry?.radius??.25,origin={...st.pos};let h=0;for(const ch of `${af.id}|${bf.id}|${fs.id}`)h=(h*33+ch.charCodeAt(0))>>>0;const phase=(h%360)*Math.PI/180;let found=null;
+      for(let ring=1;ring<=24&&!found;ring++){const rr=ring*.035;for(let i=0;i<32;i++){const a=phase+i*Math.PI/16,c=clampPosition({x:origin.x+Math.cos(a)*rr,y:origin.y+Math.sin(a)*rr},w.w,w.h,r);if(clearAt(fs.id,c,r)){found=c;break;}}}
+      if(found){st.pos=found;st.contacted=true;placed=true;break;}
+    }
+    if(!placed)break;
+  }
+  const adjusted=motions.map(m=>{const st=states.get(m.form),to=clampPosition(st?.pos||m.to,w.w,w.h,snapshotForm(s,m.form)?.geometry?.radius??.2);return {...m,to,contactLimited:!!st?.contacted};});
+  return {motions:adjusted,collisions:contactsOut};
+}
+export function resolveProcesses(w,s,processes){
+  const projected=resolveMotions(w,s,processes);
+  const embodied=resolveEmbodiedContact(w,s,projected);
+  const material=resolveMaterialDynamics(w,s,embodied.motions);
+  const transfers=resolveTransfers(w,s,processes),terrainTransfers=resolveTerrainTransfers(w,s,processes);
+  return {motions:material.motions,transfers,terrainTransfers,collisions:embodied.collisions,
+    materialContacts:material.materialContacts,mediatedContacts:material.mediatedContacts,coupledPositions:material.coupledPositions,
+    materialYieldResolutions:material.materialYieldResolutions||[],
+    metabolism:processes.filter(p=>p.type==='metabolism'),decomposition:processes.filter(p=>p.type==='decomposition'),
+    reciprocalEncounters:processes.filter(p=>p.type==='reciprocal_encounter')};
+}
+
+// LOCAL MOMENTS ----------------------------------------------------------------
+// A Moment is an ontological resolution, not the numerical frame. Zero, one or many local Moments
+// may occur inside the same physical-time interval. Grouping within an integration window is a
+// numerical approximation: mutually connected collapse-seeds share one local Moment record.
+function idsFromEvent(e,w){
+  const raw=[e.actor,e.form,e.source,e.target,e.a,e.b,e.anchor,e.mediator,...(e.actors||[]),...(e.near||[]),...(e.members||[])];
+  return [...new Set(raw.filter(id=>typeof id==='string'&&w.forms.has(id)))].sort();
+}
+function seedParticipants(x,w){return x.participants||idsFromEvent(x.event||{},w);}
+function localMomentHologram(w,s,participants,processes){
+  const before=participants.map(id=>s.forms.get(id)?.hologram).filter(Boolean);
+  const after=participants.map(id=>{const f=w.forms.get(id);return f?intrinsicHologram(w,f):null;}).filter(Boolean);
+  const ph=processes.map(p=>p.hologram).filter(Boolean);
+  return aggregateHolograms([...before,...ph,...after]);
+}
+function recordLocalMoments(w,s,activations,processes,events,fieldActivations=[]){
+  if(!w._motionMomentState)w._motionMomentState=new Map();
+  if(!w._eventMomentState)w._eventMomentState=new Map();
+  const seeds=[];
+  for(const fa of fieldActivations||[])seeds.push({kind:'field_activation',participants:fa.participants||[fa.actor].filter(Boolean),fieldActivation:fa});
+  for(const a of activations)seeds.push({kind:a.kind,participants:[a.observer,a.target].filter(id=>w.forms.has(id)),activation:a});
+  // Continuous Process persists through chronology; only a newly opened/reoriented process collapses again.
+  for(const p of processes)if(p.type==='motion'&&p.newProcess&&(p.liveAlternatives?.length||0)>0)
+    seeds.push({kind:'trajectory_resolution',participants:[p.form],process:p});
+  const discrete=new Set(['configuration_pattern_learned','counterfactual_projection_open','counterfactual_actualised','counterfactual_projection_close','will_projection_open','will_projection_override','will_projection_fulfilled','will_projection_close','praxis_attempt_open','praxis_impasse','praxis_revision_open','praxis_revision_complete','praxis_phase_shift','praxis_actualised','praxis_close','praxis_stall','material_fracture','material_coupling_open','material_coupling_break','material_topology_contact_open','material_topology_contact_close','material_joint_open','material_joint_break','material_configuration_open','material_configuration_close','structural_overload','structural_mode_shift','orientation_shift','physical_constraint_open','physical_constraint_break','animal_birth','animal_death','death','organic_residue','material_dispersal','reciprocal_encounter_open','reciprocal_encounter_close']);
+  const sustained=new Set(['bodily_contact','material_contact','force_mediation','material_strain','distributed_material_load','bodily_strain','material_transfer']);
+  for(const e of events){
+    if(e.numerical)continue;
+    if(discrete.has(e.type)){seeds.push({kind:e.type,participants:idsFromEvent(e,w),event:e});continue;}
+    if(!sustained.has(e.type))continue;
+    const participants=idsFromEvent(e,w),key=`${e.type}|${participants.join('|')}|${e.source||''}|${e.mode||''}`;
+    const magnitude=Math.abs(e.impulse??e.amount??e.strain??e.bodyDamage??0),prev=w._eventMomentState.get(key);
+    const changed=!prev||prev.frame!==w.frame-1||Math.abs(magnitude-(prev.magnitude||0))>Math.max(.02,(prev.magnitude||0)*.55);
+    if(changed)seeds.push({kind:e.type,participants,event:e});
+    w._eventMomentState.set(key,{frame:w.frame,magnitude});
+  }
+  const groups=[];
+  for(const seed of seeds){
+    const ps=new Set(seedParticipants(seed,w));let hits=[];for(let i=0;i<groups.length;i++)if([...ps].some(id=>groups[i].participants.has(id)))hits.push(i);
+    if(!hits.length){groups.push({participants:ps,seeds:[seed]});continue;}
+    const g=groups[hits[0]];for(const id of ps)g.participants.add(id);g.seeds.push(seed);
+    for(let h=hits.length-1;h>=1;h--){const x=groups.splice(hits[h],1)[0];for(const id of x.participants)g.participants.add(id);g.seeds.push(...x.seeds);}
+  }
+  const out=[];
+  for(const g of groups){
+    const participants=[...g.participants].sort();
+    const ps=processes.filter(p=>processParticipants(p).some(id=>g.participants.has(id)));
+    const id=`M${++w.momentSerial}`,h=localMomentHologram(w,s,participants,ps);
+    const fieldSyntax=Object.fromEntries(participants.map(pid=>[pid,processes.fieldContexts?.[pid]||null]).filter(([,v])=>v));
+    const superpositions=Object.fromEntries(participants.map(pid=>[pid,processes.superpositions?.[pid]||null]).filter(([,v])=>v));
+    const basin=contextualBasinCircuit(w,s,{participants,processes:ps,events:g.seeds.filter(x=>x.event).map(x=>x.event),fieldContexts:fieldSyntax,superpositions,label:id});
+    storeBasinContext(w,basin);
+    const rec={id,frame:w.frame,chronologyWindow:{from:w.elapsedDays,to:w.elapsedDays+(w.time?.dtDays||0)},
+      participants,kinds:[...new Set(g.seeds.map(x=>x.kind))],
+      // Legacy cube retained only for historical comparison. Canonical coordinates are now:
+      // acknowledgement reality (C/M/P) x pressure grammar (C/S/E) x Ground/Order/Process.
+      hologram:h,layers:namedLayers(h),legacyHologramDiagnostic:true,basinCircuit:basin,
+      acknowledgementFields:basin.acknowledgementFields,singularConditions:basin.singularConditions,representationsByReality:basin.representationsByReality,
+      truthByReality:basin.truthByReality,
+      fieldSyntax,pressureFieldSyntax:fieldSyntax,superpositions,
+      legacyFieldProjection:Object.fromEntries(participants.map(pid=>{const f=w.forms.get(pid);return [pid,f instanceof Person?contextualProjection(w,f,f):null];}).filter(([,v])=>v)),
+      fieldActivations:g.seeds.filter(x=>x.fieldActivation).map(x=>x.fieldActivation),
+      fieldConditionedResolution:{active:Object.keys(fieldSyntax).length>0,explicitSyntaxChange:g.seeds.some(x=>x.fieldActivation),
+        participantContexts:Object.keys(fieldSyntax),nonHumanSyntaxUnresolved:Object.keys(fieldSyntax).length===0},
+      activations:g.seeds.filter(x=>x.activation).map(x=>x.activation),actualities:g.seeds.filter(x=>x.event).map(x=>x.event.type),
+      foreclosures:g.seeds.filter(x=>x.process).map(x=>({form:x.process.form,alternatives:x.process.liveAlternatives?.length||0}))};
+    // v1.05: canonical Power is the relational actualisation operation itself, not a post-collapse stat.
+    // This audit measures differential actuality / inscription in the resultant. It remains available
+    // under `power` only for historical regressions; new code must use `actualityAudit` + `becoming`.
+    rec.actualityAudit=computeActualityAudit(w,s,{participants,seeds:g.seeds,processes:ps,momentHologram:h,fieldProjections:rec.legacyFieldProjection});
+    rec.becoming=computeRelationalActualisation(w,s,{participants,seeds:g.seeds,processes:ps,fieldSyntax,actualityAudit:rec.actualityAudit,label:id});
+    rec.power={...rec.actualityAudit,compatibilityOnly:true,canonicalPowerRef:'becoming.power'};
+    for(const seed of g.seeds)if(seed.event)seed.event.momentId=id;
+    w.moments.push(rec);out.push(rec);
+  }
+  if(w.moments.length>12000)w.moments.splice(0,w.moments.length-12000);
+  w.moment=w.momentSerial;
+  return out;
+}
+
+// COMMIT ----------------------------------------------------------------------
+function event(w,e){const x={clock:w.clock,frame:w.frame,elapsedDays:w.elapsedDays,...e};if(e.numerical){if(!w.integrationTrace)w.integrationTrace=[];w.integrationTrace.push(x);if(w.integrationTrace.length>4000)w.integrationTrace.shift();}else w.actualHistory.push(x);w.events.push(x);return x;}
+function applyMotionCommit(w,motions){const events=[];if(!w._motionFlow)w._motionFlow=new Map();for(const m of motions){const f=w.forms.get(m.form);if(!f?.alive)continue;f.prevPos={...f.pos};f.pos={...m.to};
+  for(const me of m.mindEvents||[])events.push(event(w,{...me,counterfactualHologram:m.counterfactualProjection?.hologram||null}));
+  if(m.willEvent)events.push(event(w,{...m.willEvent,willHologram:m.willProjection?.hologram||null}));
+  const dv=displacement(m.from,m.to),vm=vectorLength(dv);if(vm>1e-9)w._motionFlow.set(f.id,{signature:m.driverSignature||driverSignature(m.drivers),dir:unit(dv)});
+  if(!same(m.from,m.to))events.push(event(w,{type:'motion',actor:f.id,from:m.from,to:m.to,drivers:m.drivers.map(d=>d.kind),numerical:true}));
+  if(f instanceof Person&&m.newProcess){
+    const alternatives=m.liveAlternatives||[];f.competitionHistory.push({clock:w.clock,person:f.id,kind:'moment_motion_competition',winner:m.to,score:m.score,alternatives});
+    if(f.competitionHistory.length>240)f.competitionHistory.splice(0,f.competitionHistory.length-240);
+    if(alternatives.length)for(const alt of alternatives)f.costHistory.push({clock:w.clock,person:f.id,kind:'foreclosed_live_motion',from:m.from,chosen:m.to,foreclosed:alt.to,weight:alt.score});
+    if(f.costHistory.length>480)f.costHistory.splice(0,f.costHistory.length-480);
+  }
+ }return events;}
+function applyTransfers(w,transfers){const events=[];for(const t of transfers){const r=w.forms.get(t.receiver),src=w.forms.get(t.source);if(!r?.alive||!src?.alive||t.amount<=0)continue;
+    if(t.mode==='water'){
+      if(src.material?.stock!=null)src.material.stock=clamp(src.material.stock-t.amount);
+      const q=t.amount*(src.material?.water||1);
+      if(r.kind==='person')ingestWater(r,q);else r.body.water=clamp(r.body.water+q);
+    }else{
+      if(src.kind==='person'||src.kind==='animal')continue; // living bodies are not direct transferable material
+      src.material.stock=clamp(src.material.stock-t.amount);
+      const available=t.amount*(1.6+(t.potential||0)*2.2);
+      if(r.kind==='person')ingestEnergy(r,available);else r.body.energy=clamp(r.body.energy+available);
+      if(src.material.stock<=.004)src.alive=false;
+    }
+    events.push(event(w,{type:'material_transfer',mode:t.mode,actor:r.id,source:src.id,amount:t.amount,potential:t.potential??null}));
+  }return events;}
+function applyTerrainTransfers(w,transfers){
+  const events=[];
+  for(const tr of transfers||[]){
+    const r=w.forms.get(tr.receiver);if(!r?.alive||tr.amount<=0)continue;const t=terrainAt(w,tr.cell);
+    if(tr.mode==='water'){
+      const q=tr.amount*(.70+(t.moisture||0)*.30);
+      if(r.kind==='person')ingestWater(r,q);else r.body.water=clamp(r.body.water+q);
+    } else {
+      const available=tr.amount*(1.45+(tr.potential||0)*1.7);
+      if(r.kind==='person')ingestEnergy(r,available);else r.body.energy=clamp(r.body.energy+available);
+      if(tr.mode==='aquatic_biomass')t.aquatic=clamp((t.aquatic||0)-tr.amount*.55);
+      else t.browse=clamp((t.browse||0)-tr.amount*.55);
+      t.fertility=clamp((t.fertility||0)-tr.amount*.03);
+    }
+    events.push(event(w,{type:'material_transfer',mode:tr.mode,actor:r.id,source:`terrain:${tr.cell.x},${tr.cell.y}`,amount:tr.amount,potential:tr.potential??null}));
+  }
+  return events;
+}
+function applyCollisions(w,collisions){const events=[];for(const c of collisions){
+  for(const [id,damage] of Object.entries(c.effects||{})){const a=w.forms.get(id);if(!a?.alive||damage<=0)continue;a.body.integrity=clamp(a.body.integrity-damage);if(a.kind==='person')a.injury=clamp((a.injury||0)+damage);}
+  events.push(event(w,c));
+}return events;}
+function applyMetabolism(w,s){
+  const dt=w.time.dtDays,events=[];
+  for(const f of livingBodies(w)){
+    const fs=snapshotForm(s,f.id);if(!fs)continue;const t=snapshotTerrain(s,fs.pos),prot=protectionAtSnapshot(s,fs.pos),cover=prot?.material?.cover||0,warm=prot?.material?.warmth||0;
+    if(f.kind==='person'){
+      const travelled=distance(f.prevPos||f.pos,f.pos),possible=Math.max(1e-9,maxTravel(f,dt));
+      const activity=clamp(travelled/possible),stationary=travelled<1e-9;
+      applyPersonMetabolicTime(f,{dtDays:dt,activity,cold:w.weather.cold,heat:w.weather.heat,wet:w.weather.wet,cover,clothing:f.clothing||0,stationary});
+      const coldCost=w.weather.cold*(1-cover)*(1-(f.clothing||0)*.62)*.0042*dt,heatCost=w.weather.heat*(1-cover*.4)*.0018*dt;
+      f.body.warmth=clamp(f.body.warmth-coldCost+warm*.0024*dt-heatCost);
+      // Weather is a thermoregulatory burden, not an infection generator. Illness/systemic load
+      // is handled by destiny_physiological_dynamics.js only when a biological insult exists.
+      if(f.body.warmth<.08||f.body.water<.025||f.body.energy<.025)f.body.integrity=clamp(f.body.integrity-.0025*dt);
+    }else{
+      f.body.energy=clamp(f.body.energy-.0020*dt*(.65+(f.mobility||.5)*.35));
+      f.body.water=clamp(f.body.water-.0012*dt*(1-(t.moisture||0)*.35));
+      if((t.river||0)>.35||(t.deepWater||0)>.35)f.body.water=clamp(f.body.water+.012*(t.moisture||0)*dt);
+      if(f.body.water<.018||f.body.energy<.018)f.body.integrity=clamp(f.body.integrity-.0022*dt);
+    }
+  }
+  return events;
+}
+function updateAges(w){
+  const yearsPerDay=1/(w.time?.daysPerYear||360);
+  for(const f of livingBodies(w)){
+    const base=f.baseAge??(f.kind==='person'?20:1),birthDay=f.birthDay??0;
+    f.age=base+Math.max(0,(w.elapsedDays+w.time.dtDays)-birthDay)*yearsPerDay;
+    const longevity=f.longevity??(f.kind==='person'?76:12);
+    if(f.age>longevity)f.body.integrity=clamp(f.body.integrity-.00075*(1+(f.age-longevity)/Math.max(1,longevity*.2))*w.time.dtDays);
+  }
+}
+function regenerateTerrain(w){
+  const dt=w.time.dtDays;if(!w.terrain)return;
+  for(const t of w.terrain.values()){
+    const plantGrowth=clamp((t.moisture||0)*.0009+(t.fertility||0)*.0007+(1-(t.exposure||0))*.00025-(w.cycle.seasonalCold||0)*.00035)*dt;
+    t.browse=clamp((t.browse??(t.fertility||.3)*.6)+plantGrowth);
+    const aquaticGrowth=clamp((t.moisture||0)*.00055+(t.deepWater||0)*.00075-(w.cycle.seasonalHeat||0)*.00010)*dt;
+    t.aquatic=clamp((t.aquatic??0)+aquaticGrowth);
+  }
+  for(const f of w.forms.values())if(f.alive&&f.kind==='resource'&&(f.material?.water||0)>0)f.material.stock=clamp(f.material.stock+.0065*dt);
+}
+function decomposeCommit(w){
+  const events=[],dt=w.time.dtDays;
+  for(const f of [...w.forms.values()].filter(x=>x.alive&&x.kind==='organic'&&(x.material?.stock||0)>0)){
+    const t=terrainAt(w,f.pos),m=materialProfile(f),activity=clamp(.18+w.weather.heat*.34+w.weather.wet*.18+(t.moisture||0)*.30);
+    const q=Math.min(f.material.stock,(.0009+.0034*activity*Math.max(.12,m.organic))*dt);if(q<=0)continue;
+    f.material.stock=clamp(f.material.stock-q);const returned=q*(.34+.46*m.nutrient+.18*m.organic);
+    t.fertility=clamp((t.fertility||0)+returned*.42);t.browse=clamp((t.browse||0)+returned*.15);
+    if(Math.floor((w.elapsedDays+w.time.dtDays)/12)>Math.floor(w.elapsedDays/12))events.push(event(w,{type:'material_return',form:f.id,amount:q,to:'local-ground'}));
+    if(f.material.stock<=.004){f.alive=false;events.push(event(w,{type:'material_dispersal',form:f.id}));}
+  }return events;
+}
+function returnBodyMatter(w,f){
+  if(f._matterReturned)return null;f._matterReturned=true;
+  const id=`remains:${f.id}:${w.frame}`;const stock=clamp(bodyMass(f)*.65);
+  const r=new Form(id,{kind:'organic',pos:{...f.pos},stock,visibility:.28,cover:.05,organic:1,
+    nutrient:clamp(f.material?.nutrient??.68),fiber:clamp(f.material?.fiber??.05),moisture:.66,permeability:.74});
+  w.add(r);return event(w,{type:'organic_residue',actor:f.id,form:id});
+}
+function deathCommit(w){
+  const events=[];
+  for(const f of livingBodies(w)){
+    if(f.body.integrity>=.015&&f.body.energy>=.006&&f.body.water>=.006)continue;
+    f.alive=false;const d=event(w,{type:f.kind==='animal'?'animal_death':'death',actor:f.id,cause:'finite_body'});events.push(d);
+    const residue=returnBodyMatter(w,f);if(residue)events.push(residue);
+    if(f.kind==='person')w.deaths.push({clock:w.clock,id:f.id,cause:'finite_body'});
+  }return events;
+}
+function embodiedBirthOpening(w,child,parentPos,parentId){
+  const cr=formRadius(child),parent=w.forms.get(parentId),pr=parent?formRadius(parent):.28;
+  const bodies=livingBodies(w).sort((a,b)=>a.id.localeCompare(b.id));
+  const solids=[...w.forms.values()].filter(f=>finiteMaterialForm(f)).sort((a,b)=>a.id.localeCompare(b.id));
+  let hash=0;for(const ch of String(child.id))hash=(hash*33+ch.charCodeAt(0))>>>0;
+  const phase=(hash%360)*Math.PI/180;
+  for(let ring=0;ring<5;ring++){
+    const radius=pr+cr+.035+ring*.20;
+    for(let i=0;i<24;i++){
+      const a=phase+i*(Math.PI*2/24),candidate=clampPosition({x:parentPos.x+Math.cos(a)*radius,y:parentPos.y+Math.sin(a)*radius},w.w,w.h,cr);
+      const t=terrainAt(w,candidate);
+      if(child.aquatic&&(t.aquatic||0)<.12)continue;
+      if(!child.aquatic&&(t.deepWater||0)>.78)continue;
+      let clear=true;for(const b of bodies){if(distance(candidate,b.pos)<cr+formRadius(b)+.002){clear=false;break;}}
+      if(clear)for(const m of solids){if(distance(candidate,m.pos)<cr+formRadius(m)+.002){clear=false;break;}}
+      if(clear)return candidate;
+    }
+  }
+  return null;
+}
+
+function animalReproduction(w,s){
+  const events=[],dt=w.time.dtDays,animals=[...w.forms.values()].filter(f=>f.alive&&f.kind==='animal').sort((a,b)=>a.id.localeCompare(b.id));
+  for(const a of animals){
+    if(a.age<1.2||a.body.energy<.67||a.body.water<.58)continue;
+    const local=animals.filter(b=>b.id!==a.id&&b.morphology===a.morphology&&distance(a.pos,b.pos)<=2&&b.body.energy>.62);if(!local.length)continue;
+    const t=terrainAt(w,a.pos),support=a.aquatic?(t.aquatic||0):(t.browse||0);if(support<.32)continue;
+    a.reproductionResidue=clamp((a.reproductionResidue||0)+support*.20*(dt/24));
+    if(a.reproductionResidue<.48)continue;
+    // Generic biological continuity. Morphology is inherited body organisation, not a social role.
+    const donor=local[0],id=`A${w.nextAnimal}`;
+    const child=new Form(id,{kind:'animal',pos:{...a.pos},stock:1,visibility:a.material.visibility,organic:1,nutrient:a.material.nutrient,fiber:a.material.fiber,moisture:a.material.moisture});
+    child.morphology=a.morphology;child.aquatic=!!a.aquatic;child.body={energy:.72,water:.76,integrity:1};
+    child.aperture={...a.aperture};child.metabolism={...a.metabolism};child.mobility=avg([a.mobility||.5,donor.mobility||.5]);child.forceCapacity=avg([a.forceCapacity||.25,donor.forceCapacity||.25])*.72;child.mass=avg([a.mass||.3,donor.mass||.3])*.76;
+    child.baseAge=0;child.age=0;child.birthDay=w.elapsedDays;child.longevity=avg([a.longevity||12,donor.longevity||12]);child.reproductionResidue=0;child.history=[];
+    const opening=embodiedBirthOpening(w,child,a.pos,a.id);
+    if(!opening)continue; // no spatially coherent actualisation is available in this Moment
+    child.pos=opening;a.reproductionResidue=0;w.nextAnimal++;
+    w.add(child);w.fauna?.push(id);events.push(event(w,{type:'animal_birth',actor:id,near:[a.id,donor.id],pos:{...opening}}));
+  }return events;
+}
+function relationCommit(w){refreshRelationalTraceStates(w);for(const r of w.relations.values())updateRelationForm(w,r,null);}
+
+export function commitInterval(w,s,resolved){
+  const events=[];
+  events.push(...applyMotionCommit(w,resolved.motions));
+  const materialEvents=commitMaterialDynamics(w,resolved);
+  for(const e of materialEvents)events.push(event(w,e));
+  const topologyEvents=commitMaterialTopology(w,materialEvents);
+  for(const e of topologyEvents)events.push(event(w,e));
+  const constraintReactions=resolveConstraintReactions(w,[...materialEvents,...topologyEvents]);
+  for(const e of constraintReactions)events.push(event(w,e));
+  const structuralEvents=commitStructuralMechanics(w,[...materialEvents,...topologyEvents,...constraintReactions]);
+  for(const e of structuralEvents)events.push(event(w,e));
+  const constraintEvents=commitConstraintDynamics(w,[...materialEvents,...topologyEvents,...constraintReactions,...structuralEvents]);
+  for(const e of constraintEvents)events.push(event(w,e));
+  events.push(...applyTransfers(w,resolved.transfers));
+  events.push(...applyTerrainTransfers(w,resolved.terrainTransfers));
+  events.push(...applyCollisions(w,resolved.collisions));
+  applyMetabolism(w,s);updateAges(w);regenerateTerrain(w);events.push(...decomposeCommit(w));events.push(...deathCommit(w));events.push(...animalReproduction(w,s));
+  for(const e of cleanupMaterialDynamics(w))events.push(event(w,e));
+  // Reciprocal encounter is committed after Reality has resolved for the interval. Its relational trace
+  // is still written only after local Moment recording, so it cannot rewrite the producing Moment.
+  events.push(...commitReciprocalEncounterProcesses(w,resolved.reciprocalEncounters,e=>event(w,e)));
+  relationCommit(w);
+  // Mind can learn/revise only after Physical consequences are committed. These events are themselves
+  // local collapses in the Mind layer, but they do not retroactively alter the interval that taught them.
+  for(const e of commitImaginationDynamics(w,events))events.push(event(w,e));
+  // Praxis reads the already-committed result. Its revision becomes available only next interval.
+  for(const e of commitPraxisDynamics(w,events))events.push(event(w,e));
+  const wholeBoundary=Math.floor((w.elapsedDays+w.time.dtDays)/4)>Math.floor(w.elapsedDays/4);const wholes=wholeBoundary?stepWholes(w):[];
+  return {events,wholes};
+}
+
+// Deprecated semantic alias for old harnesses; a commit is an integration interval, not a Moment.
+export const commitMoment=commitInterval;
+
+export function integrationStep(w,{dtDays=null}={}){
+  const dt=dtDays??w.time?.dtDays??TIMEBASE.defaultDtDays;
+  initializeWorldTime(w,{dtDays:dt,daysPerYear:w.time?.daysPerYear||TIMEBASE.daysPerYear});
+  deriveWorldConditions(w);
+  const snapshot=snapshotReality(w);
+  const activations=accessibilityPhase(w,snapshot);
+  const processes=generateProcesses(w,snapshot);
+  recordPreCollapseBasinFlows(w,{activations,processes,fieldContexts:processes.fieldContexts,superpositions:processes.superpositions});
+  const resolved=resolveProcesses(w,snapshot,processes);
+  const committed=commitInterval(w,snapshot,resolved);
+  const moments=recordLocalMoments(w,snapshot,activations,processes,committed.events,processes.fieldActivations);
+  // v1.06: only already-resolved Moments can write relational history. The trace therefore changes
+  // later possibility, never the Moment that produced it.
+  const relationalTraces=commitRelationalMomentTraces(w,moments,committed.events);
+  recordPostCollapseBasinFlows(w,{events:committed.events,moments});
+  // Contact/rupture confronts an ongoing trajectory; next interval may therefore open a new Process.
+  const confrontationTypes=new Set(['bodily_contact','material_contact','material_contact_resolution','material_topology_contact_open','material_joint_break','material_configuration_close','structural_overload','structural_mode_shift','orientation_shift','physical_constraint_break','force_mediation','material_coupling_break','material_fracture','death','animal_death']);
+  w._confronted=new Set(committed.events.filter(e=>confrontationTypes.has(e.type)).flatMap(e=>idsFromEvent(e,w)));
+  // Only chronology advances here. Moment count changed above only if something actually collapsed.
+  w.frame++;w.round=w.frame;w.elapsedDays+=dt;w.clock=w.elapsedDays;w.day=Math.floor(w.elapsedDays);
+  return {snapshotFrame:snapshot.frame,dtDays:dt,processes,resolved,events:committed.events,moments,relationalTraces,wholes:committed.wholes,fieldActivations:processes.fieldActivations,fieldContexts:processes.fieldContexts,superpositions:processes.superpositions};
+}
+
+// Deprecated compatibility name: one call is an integration interval and may contain zero/many Moments.
+export function momentStep(w,{dtDays=null}={}){return integrationStep(w,{dtDays});}
+export function runFrames(w,n,{dtDays=null,onFrame=null,onMoment=null}={}){
+  const out=[];for(let i=0;i<n;i++){const r=integrationStep(w,{dtDays});if(onFrame)onFrame(w,r,i);if(onMoment)for(const m of r.moments)onMoment(w,m,i);out.push(r);}return out;
+}
+export function runDuration(w,totalDays,{dtDays=TIMEBASE.defaultDtDays,onFrame=null,onMoment=null}={}){
+  let remaining=Math.max(0,totalDays),i=0;const out=[];
+  while(remaining>1e-12){const dt=Math.min(dtDays,remaining);const r=integrationStep(w,{dtDays:dt});if(onFrame)onFrame(w,r,i);if(onMoment)for(const m of r.moments)onMoment(w,m,i);out.push(r);remaining-=dt;i++;}
+  return out;
+}
+// Legacy harness compatibility. n means numerical frames, not ontological Moments.
+export function runMoments(w,n,{dtDays=null,onMoment=null}={}){return runFrames(w,n,{dtDays,onMoment});}
+
+export function momentAudit(w){
+  const people=[...w.forms.values()].filter(f=>f.kind==='person'),animals=[...w.forms.values()].filter(f=>f.kind==='animal');
+  const mh=w.moments?.slice(-100).map(m=>m.hologram)||[];
+  return {momentCount:w.momentSerial??0,frame:w.frame??0,clock:w.clock,round:w.round,elapsedDays:w.elapsedDays,elapsedYears:w.elapsedDays/(w.time?.daysPerYear||360),
+    livingPeople:people.filter(f=>f.alive).length,livingAnimals:animals.filter(f=>f.alive).length,
+    humanAges:people.filter(f=>f.alive).map(f=>f.age),animalAges:animals.filter(f=>f.alive).map(f=>f.age),
+    recentMomentHologram:aggregateHolograms(mh),actuality:actualityAuditSummary(w),becoming:becomingAudit(w),
+    power:actualityAuditSummary(w), // historical compatibility label only
+    will:willAudit(w),imagination:imaginationAudit(w),praxis:praxisAudit(w),actualHistory:w.actualHistory.length,relations:w.relations.size,wholes:w.wholes.size,
+    materialDynamics:materialDynamicsAudit(w),materialTopology:materialTopologyAudit(w),structuralMechanics:structuralMechanicsAudit(w),constraintDynamics:constraintDynamicsAudit(w),fieldSyntax:fieldSyntaxAudit(w),moira:moiraAuditSummary(w),acknowledgement:acknowledgementAudit(w),basinCircuit:basinCircuitAudit(w),relationalTrace:relationalTraceAudit(w),reciprocalEncounter:reciprocalEncounterAudit(w)};
+}
+
