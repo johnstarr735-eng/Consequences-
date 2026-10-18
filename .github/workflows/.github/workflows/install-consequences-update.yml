@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           sha256sum --check <<'CHECKSUM'
-          1d8c65508952b380ff4faa96f3566ab08095562e231e144ad433a7f2d5ddbd5a  .github/updates/ollama-integration.patch
+          1d8c65508952b380ff4faa96f3566ab08095562e231e144ad433a7f2d5ddbd5a  ollama-integration.patch
           CHECKSUM
           git merge-base --is-ancestor b8e81cff548310099b214d02e01f17448fb3c9ce HEAD
           branch="manual/ollama-update-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
@@ -36,7 +36,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git config core.autocrlf false
-          git am --3way --keep-cr --whitespace=nowarn .github/updates/ollama-integration.patch
+          git am --3way --keep-cr --whitespace=nowarn ollama-integration.patch
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
 
       - name: Run the gameplay and AI provider tests
