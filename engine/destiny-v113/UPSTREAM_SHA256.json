@@ -1,0 +1,29 @@
+{
+  "archive_sha256": "cfb79cd9c1d9a72ddb2ea967dffb12b33f67d042a6c7357d547f7514cadf549d",
+  "engine_version": "1.13",
+  "files": {
+    "destiny_acknowledgement_fields.js": "ba580de88b77b109a9895e0f60da8d07c7b729e81a5e119ec63a1fe6ee9593a3",
+    "destiny_basin_circuit.js": "c1e7b8350ec2cac8bc02b2dc5a45283859b59809e8cf9165654f183f143ace39",
+    "destiny_becoming_dynamics.js": "7c8c0885236a9a80c58fbca71864774476839dcaae718d1e0b8964ea5dfdccaf",
+    "destiny_condition_realities.js": "8d1c98f78bd31a07b5882bb7c725416c58a76a80e7b1737b443441ca84b1a51f",
+    "destiny_constraint_dynamics.js": "3e3b76eefc71a81e9ed2755b5af2ab73fa1e2864ab030ae64f7bb2b29bdb5fa7",
+    "destiny_embodied_geometry.js": "ef347b1d3d11fac7225af43f15a96c4758a591fc65379eccafc1e13ad1b0f1e1",
+    "destiny_field_syntax.js": "bf851e6f3e0462f2d41286b287bb05bced977781f2b1441ac24934a38f41f5ac",
+    "destiny_imagination_dynamics.js": "60483b3904c0f97632033b8f30fda2741b09f7fc8b30e2640e66aaf0584891ee",
+    "destiny_material_dynamics.js": "554bd1961dda3ff3be18a994c46ad3ebab58a2d46b823b49883bccdc1faae695",
+    "destiny_material_topology.js": "64024099022d9a83664113540b574ec6d74c44e35008805aee036297e90223b9",
+    "destiny_metabolic_time.js": "e48ceb425c86f35b9497d9ed554f6a8bd8ee76805fa2f36e410e69a3d4b8f3e4",
+    "destiny_moira_dynamics.js": "a2709f45f8045144ec4052de192ac2aa39107a6e4aab6da24c8c136b7c2fd747",
+    "destiny_moment_engine.js": "12fa43b8d7dd4a9d69df7061c9c57695eca2886b6b833fa193210d5ba353981a",
+    "destiny_physiological_dynamics.js": "3f94ad1dba90372305ca67091c66b37f5d255e3b532eaff6d53ef67da754c58d",
+    "destiny_power_dynamics.js": "71b39821f169baf29fb89e057cdbd621cd04a223148eee0f454d546d0a94b7fc",
+    "destiny_practical_memory.js": "58c85060bb6b0b7665a724f4b1eaf4d2676a60e7ffb12d2fc235938af92329a6",
+    "destiny_praxis_dynamics.js": "57bfd246dc2b6a1aaf54730d6cfcc6628dc3dc4706b619593f398549482a6f54",
+    "destiny_reciprocal_encounter.js": "51f3db05f215e157f46b6e98db1df06763aad68d673a5510c20acceb54e51800",
+    "destiny_relational_trace.js": "a6732d317ad8e42ee2a0e9566325876f68addbd64ca5f2fecb6bf648894d9483",
+    "destiny_sovereign_field_demand.js": "7fd0b6ff4b819f0ecd7b7d4faa2d6cd307f1e57a59fe15ef5f2cda58e99734eb",
+    "destiny_structural_mechanics.js": "c047b40372905d8e14af1b80b74344d02e13a9e3cd799fe4dbb35b1ca37955f8",
+    "destiny_unified_kernel.js": "bbd2cb34a82f70b1a0d834e07b29ef9c57d8c1a733d0065eed08c5907d4cf7c0",
+    "destiny_will_dynamics.js": "da19471a2de312522ffdf57b67f1af5180aeb03ae1aa46b70286cc2528ce0427"
+  }
+}
